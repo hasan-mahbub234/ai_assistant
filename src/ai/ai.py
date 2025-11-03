@@ -190,11 +190,11 @@ class EcommerceAICustomerSupport:
         
         # Initialize database connection
         self.db_config = {
-            'host': os.getenv('DB_HOST', '43.204.142.93'),
-            'user': os.getenv('DB_USER', 'mahbubdb'),
-            'password': os.getenv('DB_PASSWORD', 'mahbub123'),
-            'database': os.getenv('DB_NAME', 'ecommerce_website'),
-            'port': int(os.getenv('DB_PORT', 3306)),
+            'host': os.getenv('DB_HOST'),
+            'user': os.getenv('DB_USER'),
+            'password': os.getenv('DB_PASSWORD'),
+            'database': os.getenv('DB_NAME'),
+            'port': int(os.getenv('DB_PORT')),
             'charset': 'utf8mb4'
         }
         
@@ -226,7 +226,7 @@ class EcommerceAICustomerSupport:
                 return False
             
             self.pc = Pinecone(api_key=pinecone_api_key)
-            self.index_name = os.getenv("PINECONE_INDEX_NAME", "ecommerce-customer-support")
+            self.index_name = os.getenv("PINECONE_INDEX_NAME")
             
             # Check if index exists
             existing_indexes = self.pc.list_indexes()

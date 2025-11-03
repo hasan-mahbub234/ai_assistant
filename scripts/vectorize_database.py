@@ -17,16 +17,16 @@ load_dotenv()
 
 # Configuration
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', '43.204.142.93'),
-    'user': os.getenv('DB_USER', 'mahbubdb'),
-    'password': os.getenv('DB_PASSWORD', 'mahbub123'),
-    'database': os.getenv('DB_NAME', 'ecommerce_website'),
-    'port': int(os.getenv('DB_PORT', 3306)),
+    'host': os.getenv('DB_HOST'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME'),
+    'port': int(os.getenv('DB_PORT')),
     'charset': 'utf8mb4'
 }
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "ecommerce-customer-support")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
 
 def clean_html(text):
     """Remove HTML tags and clean up whitespace from text"""
