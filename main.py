@@ -46,6 +46,7 @@ async def lifespan(app: FastAPI):
     
     logger.info("🛑 AI Service Shutting Down...")
 
+
 app = FastAPI(
     title="Ecommerce AI Customer Support",
     description="Multilingual AI Customer Support with Product Search & Order Tracking",
