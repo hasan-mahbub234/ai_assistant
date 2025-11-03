@@ -911,6 +911,9 @@ async def chat_with_ai(request: ChatRequest):
             success=False
         )
 
+
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -919,7 +922,9 @@ async def health_check():
         "status": "healthy", 
         "service": "AI Customer Support",
         "pinecone": pinecone_status
+
     }
+
 
 if __name__ == "__main__":
     import uvicorn
