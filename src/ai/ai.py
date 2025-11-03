@@ -5,7 +5,7 @@ load_dotenv()
 
 import pymysql
 from pinecone import Pinecone
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 import requests
 import langdetect

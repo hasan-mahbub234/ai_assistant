@@ -6,7 +6,7 @@ import os
 import sys
 import pymysql
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 from pinecone import Pinecone, ServerlessSpec
 import uuid
