@@ -1,1 +1,25 @@
-<paste the above list>
+# Core FastAPI & Web Server
+fastapi==0.115.12
+uvicorn==0.34.2
+python-multipart==0.0.20
+
+# Database
+PyMySQL==1.1.1
+
+# AI & Machine Learning
+langchain==0.3.27
+langchain-core==0.3.79
+langchain-community==0.3.27
+langchain-text-splitters==0.3.11
+sentence-transformers==5.1.2
+huggingface-hub==0.34.4
+
+# Vector Database
+pinecone-client==6.0.0
+
+# Environment & Utilities
+python-dotenv==1.1.0
+pydantic==2.11.4
+pydantic-settings==2.9.1
+requests==2.32.5
+langdetect==1.0.9
