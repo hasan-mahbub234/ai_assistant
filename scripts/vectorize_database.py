@@ -1,393 +1,683 @@
+#!/usr/bin/env python3
 """
-Manual vectorization script to properly upload MySQL data to Pinecone
-Run this script to populate your Pinecone vector store
+vectorize_database.py
+Enhanced version with incremental updates - only updates changed products
 """
+
 import os
 import sys
+import time
+import json
+import re
+import uuid
+import math
+import logging
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+
 import pymysql
 from dotenv import load_dotenv
+
+# LangChain HuggingFace wrapper
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
+
+# Pinecone (serverless)
 from pinecone import Pinecone, ServerlessSpec
-import uuid
-import time
-import re
 
 load_dotenv()
 
-# Configuration
+# -------------------------
+# Configuration & Logging
+# -------------------------
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'database': os.getenv('DB_NAME'),
-    'port': int(os.getenv('DB_PORT')),
-    'charset': 'utf8mb4'
+    "host": os.getenv("DB_HOST"),
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "database": os.getenv("DB_NAME"),
+    "port": int(os.getenv("DB_PORT") or 3306),
+    "charset": "utf8mb4"
 }
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME") or "products-index"
+EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+EMBED_DIMENSION = 384
+BATCH_SIZE = int(os.getenv("PINECONE_BATCH_SIZE") or 50)
+UPSERT_SLEEP = float(os.getenv("UPSERT_SLEEP") or 0.15)
 
-def clean_html(text):
-    """Remove HTML tags and clean up whitespace from text"""
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=LOG_LEVEL,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("vectorize_database")
+
+# -------------------------
+# Sentiment Analysis Helper
+# -------------------------
+def analyze_sentiment(text: str) -> str:
+    """
+    Simple rule-based sentiment analysis for Bangla and English reviews
+    Returns: 'positive', 'negative', or 'neutral'
+    """
     if not text:
-        return ""
+        return "neutral"
     
-    # Remove HTML tags
-    clean = re.compile('<.*?>')
-    text = re.sub(clean, '', text)
+    text_lower = text.lower()
     
-    # Remove extra whitespace, newlines, and special characters
-    text = re.sub(r'\s+', ' ', text)  # Replace multiple whitespace with single space
-    text = re.sub(r'\r\n', ' ', text)  # Replace Windows newlines
-    text = re.sub(r'\n', ' ', text)    # Replace Unix newlines
-    text = re.sub(r'\t', ' ', text)    # Replace tabs
-    text = re.sub(r'\r', ' ', text)    # Replace carriage returns
+    # Positive indicators (Bangla + English)
+    positive_indicators = [
+        # English
+        'good', 'great', 'excellent', 'awesome', 'amazing', 'perfect', 'love', 'nice', 
+        'best', 'wonderful', 'fantastic', 'outstanding', 'superb', 'brilliant',
+        # Bangla
+        'ভাল', 'চমৎকার', 'অসাধারণ', 'দারুণ', 'বেশ', 'মজা', 'সুন্দর', 'উত্তম', 'খুব ভাল',
+        'ভালো', 'বেশ ভালো', 'অনেক ভালো', 'খুশি', 'সন্তুষ্ট'
+    ]
     
-    # Remove any remaining special characters but keep Bengali and English text
-    text = re.sub(r'[^\w\s\u0980-\u09FF\.\,\!\?\-\$]', '', text)
+    # Negative indicators (Bangla + English)
+    negative_indicators = [
+        # English
+        'bad', 'poor', 'terrible', 'awful', 'horrible', 'worst', 'disappointing',
+        'waste', 'cheap', 'broken', 'damaged', 'problem', 'issue', 'complaint',
+        # Bangla
+        'খারাপ', 'ভাল না', 'খারাপ লাগছে', 'অসন্তুষ্ট', 'সমস্যা', 'ত্রুটি', 'ভাঙ্গা',
+        'নষ্ট', 'কম', 'দুঃখিত', 'অসুবিধা', 'অভিযোগ'
+    ]
     
-    return text.strip()
+    positive_count = sum(1 for word in positive_indicators if word in text_lower)
+    negative_count = sum(1 for word in negative_indicators if word in text_lower)
+    
+    if positive_count > negative_count:
+        return "positive"
+    elif negative_count > positive_count:
+        return "negative"
+    else:
+        return "neutral"
 
-def extract_clean_text(html_text, max_length=300):
-    """Extract clean, readable text from HTML"""
-    if not html_text:
-        return ""
-    
-    # Remove HTML tags and clean
-    clean_text = clean_html(html_text)
-    
-    # Extract the most meaningful parts (usually the first few sentences)
-    sentences = re.split(r'[.!?]+', clean_text)
-    meaningful_text = ""
-    
-    for sentence in sentences:
-        sentence = sentence.strip()
-        if len(sentence) > 20:  # Only take substantial sentences
-            meaningful_text += sentence + ". "
-            if len(meaningful_text) > max_length:
-                break
-    
-    return meaningful_text.strip() or clean_text[:max_length]
+def get_sentiment_emoji(sentiment: str) -> str:
+    """Get emoji for sentiment"""
+    return {
+        "positive": "😊",
+        "negative": "😞", 
+        "neutral": "😐"
+    }.get(sentiment, "😐")
 
+# -------------------------
+# Utilities: HTML -> Text
+# -------------------------
+RE_HTML_TAG = re.compile(r"<[^>]+>")
+RE_WHITESPACE = re.compile(r"\s+")
+RE_ENTITY = re.compile(r"&[A-Za-z0-9#]+;")
+RE_ALLOWED = re.compile(r"[^\w\s\u0980-\u09FF\.\,\!\?\-\:\;\(\)\%\$\@\#\&\—\'\"]+")
+
+def clean_html_completely(raw_html: Optional[str]) -> str:
+    if not raw_html:
+        return ""
+    text = raw_html
+    text = re.sub(r"(?is)<(script|style).*?>.*?</\1>", " ", text)
+    text = re.sub(r"<!--.*?-->", " ", text, flags=re.S)
+    text = RE_HTML_TAG.sub(" ", text)
+    text = RE_ENTITY.sub(" ", text)
+    text = RE_ALLOWED.sub(" ", text)
+    text = RE_WHITESPACE.sub(" ", text).strip()
+    return text
+
+def intelligently_pick_summary(text: str, tags: List[str], name: str, max_chars: int = 320) -> str:
+    if not text:
+        base = f"{name}".strip()
+    else:
+        sentences = re.split(r'(?<=[।\.!\?])\s+', text)
+        meaningful = [s.strip() for s in sentences if len(s.strip()) > 20]
+        if meaningful:
+            base = " ".join(meaningful[:2])
+        else:
+            base = text[:max_chars]
+
+    tag_hint = ""
+    top_tags = [t for t in tags if isinstance(t, str) and t.strip()][:6]
+    if top_tags:
+        tag_hint = " Tags: " + ", ".join(top_tags[:6])
+
+    summary = f"{base}{tag_hint}"
+    if len(summary) > max_chars:
+        summary = summary[: max_chars - 3].rstrip() + "..."
+    return summary
+
+# -------------------------
+# Safe conversions
+# -------------------------
+def safe_string(value: Any, default: str = "") -> str:
+    if value is None:
+        return default
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, (bytes, bytearray)):
+        try:
+            if len(value) == 16:
+                return str(uuid.UUID(bytes=value))
+            else:
+                return value.decode('utf-8', errors='ignore').strip()
+        except Exception:
+            return default
+    try:
+        return str(value)
+    except Exception:
+        return default
+
+def safe_uuid(value: Any) -> str:
+    if not value:
+        return str(uuid.uuid4())
+    if isinstance(value, uuid.UUID):
+        return str(value)
+    str_value = safe_string(value)
+    if not str_value:
+        return str(uuid.uuid4())
+    try:
+        return str(uuid.UUID(str_value))
+    except ValueError:
+        pass
+    if isinstance(value, (bytes, bytearray)):
+        try:
+            if len(value) == 16:
+                return str(uuid.UUID(bytes=value))
+            else:
+                hex_str = value.hex()
+                if len(hex_str) == 32:
+                    return str(uuid.UUID(hex_str))
+        except Exception:
+            pass
+    return str(uuid.uuid4())
+
+def safe_list(value: Any) -> List[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [safe_string(x) for x in value if safe_string(x)]
+    if isinstance(value, (str, bytes)):
+        s = value.decode() if isinstance(value, bytes) else value
+        s = s.strip()
+        if s.startswith("[") and s.endswith("]"):
+            try:
+                parsed = json.loads(s)
+                if isinstance(parsed, list):
+                    return [safe_string(x) for x in parsed if safe_string(x)]
+            except Exception:
+                pass
+        if "," in s:
+            parts = [p.strip().strip('"\'') for p in s.split(",") if p.strip()]
+            return [p for p in parts if p]
+        return [s] if s else []
+    return [safe_string(value)]
+
+def cast_int(value: Any, default: int = 0) -> int:
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+def cast_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except Exception:
+        return default
+
+def parse_datetime(dt_str: str) -> Optional[datetime]:
+    """Parse datetime string to datetime object"""
+    if not dt_str:
+        return None
+    try:
+        # Handle different datetime formats
+        formats = [
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S.%fZ",
+            "%Y-%m-%dT%H:%M:%S.%f"
+        ]
+        for fmt in formats:
+            try:
+                return datetime.strptime(dt_str, fmt)
+            except ValueError:
+                continue
+        return None
+    except Exception:
+        return None
+
+# -------------------------
+# Database functions
+# -------------------------
+def get_db_connection():
+    try:
+        conn = pymysql.connect(**DB_CONFIG)
+        return conn
+    except Exception as e:
+        logger.error("DB connection failed: %s", e)
+        raise
+
+def fetch_all_products(limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    rows = []
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            q = """
+            SELECT uid, name, description, price, brand, category, quantity,
+                   discount, size, weight, color, tags, free_delivery, best_selling,
+                   created_at, updated_at
+            FROM Products
+            ORDER BY created_at DESC
+            """
+            if limit:
+                cur.execute(q + " LIMIT %s", (limit,))
+            else:
+                cur.execute(q)
+            rows = cur.fetchall()
+            logger.info("Fetched %d product rows", len(rows))
+    except Exception as e:
+        logger.exception("Error fetching products: %s", e)
+    finally:
+        conn.close()
+    return rows
+
+def get_product_reviews(conn, product_uid: str, limit: int = 50) -> List[Dict[str, Any]]:
+    """
+    Get reviews with proper BINARY(16) UUID handling
+    """
+    try:
+        # Convert string UUID to bytes for BINARY(16) column
+        product_uid_bytes = uuid.UUID(product_uid).bytes
+        
+        with conn.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute(
+                """
+                SELECT rating, review_text, user_name, created_at
+                FROM ProductReview
+                WHERE product_uid = %s
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (product_uid_bytes, limit),
+            )
+            results = cur.fetchall()
+            return results
+    except Exception as e:
+        logger.error("Error fetching reviews for %s: %s", product_uid, e)
+        return []
+
+def rating_stats_from_reviews(reviews: List[Dict[str, Any]]) -> Dict[str, Any]:
+    if not reviews:
+        return {"average": 0.0, "count": 0}
+    
+    valid_ratings = []
+    for r in reviews:
+        rating = r.get("rating")
+        if rating is not None:
+            try:
+                rating_val = float(rating)
+                if 0 <= rating_val <= 5:
+                    valid_ratings.append(rating_val)
+            except (ValueError, TypeError):
+                continue
+    
+    if not valid_ratings:
+        return {"average": 0.0, "count": 0}
+    
+    avg = round(sum(valid_ratings) / len(valid_ratings), 1)
+    return {"average": avg, "count": len(valid_ratings)}
+
+def format_reviews_for_preview(reviews: List[Dict[str, Any]]) -> str:
+    """
+    Format reviews with names, ratings, sentiment, and emojis for preview
+    """
+    if not reviews:
+        return "No reviews yet"
+    
+    formatted_reviews = []
+    for i, review in enumerate(reviews[:5]):  # Show max 5 reviews in preview
+        user_name = review.get('user_name', 'Anonymous')
+        rating = review.get('rating', 0)
+        review_text = review.get('review_text', '')
+        
+        # Analyze sentiment
+        sentiment = analyze_sentiment(review_text)
+        emoji = get_sentiment_emoji(sentiment)
+        
+        # Truncate long review text
+        truncated_text = review_text[:150] + "..." if len(review_text) > 150 else review_text
+        
+        formatted_review = f"{emoji} {user_name}: ⭐{rating}/5 ({sentiment}) - {truncated_text}"
+        formatted_reviews.append(formatted_review)
+    
+    return "\n".join(formatted_reviews)
+
+# -------------------------
+# Pinecone Helper Functions
+# -------------------------
+def get_existing_vector_timestamps(index) -> Dict[str, datetime]:
+    """
+    Fetch current updated_at timestamps from Pinecone for all vectors
+    """
+    timestamps = {}
+    try:
+        # Fetch all vectors (this might be expensive for large indexes)
+        # Consider using pagination if you have many vectors
+        stats = index.describe_index_stats()
+        total_vectors = stats.total_vector_count
+        
+        if total_vectors > 0:
+            # Fetch vectors in batches
+            logger.info("Fetching existing vector timestamps from Pinecone...")
+            # Note: This is a simplified approach. For large datasets, you might need pagination
+            # or store the timestamps separately
+            
+    except Exception as e:
+        logger.warning("Could not fetch existing vector timestamps: %s", e)
+    
+    return timestamps
+
+def get_vector_metadata(index, vector_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Get metadata for a specific vector
+    """
+    try:
+        result = index.fetch(ids=[vector_id])
+        if vector_id in result.vectors:
+            return result.vectors[vector_id].metadata
+    except Exception as e:
+        logger.debug("Could not fetch metadata for vector %s: %s", vector_id, e)
+    return None
+
+def has_product_changed(db_product: Dict[str, Any], existing_metadata: Optional[Dict[str, Any]]) -> bool:
+    """
+    Check if product has changed by comparing updated_at timestamps
+    """
+    if not existing_metadata:
+        return True  # No existing vector, needs to be created
+    
+    # Get current updated_at from database
+    db_updated_at_str = safe_string(db_product.get("updated_at"))
+    db_updated_at = parse_datetime(db_updated_at_str)
+    
+    # Get existing updated_at from Pinecone
+    existing_updated_at_str = existing_metadata.get("updated_at")
+    existing_updated_at = parse_datetime(existing_updated_at_str)
+    
+    if not db_updated_at or not existing_updated_at:
+        return True  # If we can't parse dates, assume changed
+    
+    # Check if database timestamp is newer than Pinecone timestamp
+    return db_updated_at > existing_updated_at
+
+# -------------------------
+# Create embedding document
+# -------------------------
+def create_product_document(product: Dict[str, Any], reviews: List[Dict[str, Any]]) -> Document:
+    uid = safe_uuid(product.get("uid"))
+    name = safe_string(product.get("name", "Unknown Product"))
+    raw_description = safe_string(product.get("description", ""))
+    description = clean_html_completely(raw_description)
+    category = safe_string(product.get("category", ""))
+    brand = safe_string(product.get("brand", ""))
+    price = cast_float(product.get("price", 0.0))
+    discount = cast_float(product.get("discount", 0.0))
+    quantity = cast_int(product.get("quantity", 0))
+    sizes = safe_list(product.get("size"))
+    weights = safe_list(product.get("weight"))
+    colors = safe_list(product.get("color"))
+    tags = safe_list(product.get("tags"))
+    free_delivery = bool(product.get("free_delivery"))
+    best_selling = bool(product.get("best_selling"))
+    created_at = safe_string(product.get("created_at", ""))
+    updated_at = safe_string(product.get("updated_at", ""))
+
+    # Reviews & rating
+    stats = rating_stats_from_reviews(reviews)
+    review_texts = [safe_string(r.get("review_text", "")) for r in reviews if safe_string(r.get("review_text", ""))]
+    review_snippet = " ".join(review_texts[:3]) if review_texts else ""
+    
+    # Format reviews for preview with names, ratings, and sentiment
+    formatted_reviews = format_reviews_for_preview(reviews)
+
+    summary = intelligently_pick_summary(description or review_snippet or name, tags, name)
+
+    parts = [
+        f"Product: {name}",
+        f"Category: {category}" if category else "",
+        f"Brand: {brand}" if brand else "",
+        f"Price: {price:.2f} BDT" if price else "",
+        f"Discount: {discount}%" if discount else "",
+        f"Overall Rating: {stats['average']}/5 ({stats['count']} reviews)",
+        f"Summary: {summary}",
+        f"Description: {description}" if description else "",
+    ]
+
+    attr_parts = []
+    if sizes:
+        attr_parts.append("Sizes: " + ", ".join(sizes[:10]))
+    if weights:
+        attr_parts.append("Weights: " + ", ".join(weights[:10]))
+    if colors:
+        attr_parts.append("Colors: " + ", ".join(colors[:10]))
+    if tags:
+        attr_parts.append("Tags: " + ", ".join(tags[:15]))
+    if attr_parts:
+        parts.append("Attributes: " + " | ".join(attr_parts))
+
+    # Enhanced reviews section with names, ratings, and sentiment
+    if reviews:
+        parts.append("Customer Reviews:")
+        parts.append(formatted_reviews)
+
+    if free_delivery:
+        parts.append("Free Delivery Available")
+    if best_selling:
+        parts.append("Best Selling Product")
+
+    document_text = "\n".join([p for p in parts if p]).strip()
+
+    metadata = {
+        "product_id": uid,
+        "name": name,
+        "category": category,
+        "brand": brand,
+        "price": price,
+        "discount": discount,
+        "quantity": quantity,
+        "average_rating": stats["average"],
+        "review_count": stats["count"],
+        "free_delivery": free_delivery,
+        "best_selling": best_selling,
+        "sizes": sizes,
+        "weights": weights,
+        "colors": colors,
+        "tags": tags,
+        "created_at": created_at,
+        "updated_at": updated_at,
+        "source": "database",
+        "content_type": "product"
+    }
+
+    return Document(page_content=document_text, metadata=metadata)
+
+# -------------------------
+# Initialize embeddings and Pinecone
+# -------------------------
 def init_embeddings():
-    """Initialize HuggingFace embeddings"""
-    print("🔄 Initializing embeddings model...")
+    logger.info("Initializing embeddings model: %s", EMBEDDING_MODEL)
     try:
         embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            model_kwargs={'device': 'cpu'}
+            model_name=EMBEDDING_MODEL,
+            model_kwargs={"device": "cpu"},
+            encode_kwargs={"normalize_embeddings": True}
         )
-        # Test the embeddings
-        test_embedding = embeddings.embed_query("test")
-        print(f"✅ Embeddings model loaded successfully (dimension: {len(test_embedding)})")
+        test_emb = embeddings.embed_query("test")
+        logger.info("Embeddings initialized (dim=%d)", len(test_emb))
         return embeddings
     except Exception as e:
-        print(f"❌ ERROR loading embeddings: {e}")
-        sys.exit(1)
+        logger.exception("Failed to initialize embeddings: %s", e)
+        raise
 
-def init_pinecone():
-    """Initialize Pinecone connection"""
+def init_pinecone(delete_existing: bool = False):
     if not PINECONE_API_KEY:
-        print("❌ ERROR: PINECONE_API_KEY not set")
-        sys.exit(1)
-    
-    print("🔄 Connecting to Pinecone...")
+        logger.error("PINECONE_API_KEY missing in env")
+        raise RuntimeError("PINECONE_API_KEY missing")
+
     try:
         pc = Pinecone(api_key=PINECONE_API_KEY)
+        existing = pc.list_indexes()
+        index_names = [idx.name for idx in existing.indexes] if getattr(existing, "indexes", None) else []
         
-        # Check if index exists
-        existing_indexes = pc.list_indexes()
-        index_names = [idx.name for idx in existing_indexes.indexes]
+        if delete_existing and PINECONE_INDEX_NAME in index_names:
+            logger.info("Deleting existing Pinecone index: %s", PINECONE_INDEX_NAME)
+            pc.delete_index(PINECONE_INDEX_NAME)
+            logger.info("Waiting for index deletion...")
+            time.sleep(10)
+            index_names.remove(PINECONE_INDEX_NAME)
         
         if PINECONE_INDEX_NAME not in index_names:
-            print(f"📦 Creating Pinecone index: {PINECONE_INDEX_NAME}")
+            logger.info("Creating Pinecone index: %s (dim=%d)", PINECONE_INDEX_NAME, EMBED_DIMENSION)
             pc.create_index(
                 name=PINECONE_INDEX_NAME,
-                dimension=384,
+                dimension=EMBED_DIMENSION,
                 metric="cosine",
                 spec=ServerlessSpec(cloud="aws", region="us-east-1")
             )
-            print("⏳ Index created. Waiting for initialization...")
-            time.sleep(30)
+            logger.info("Waiting for index creation...")
+            time.sleep(10)
         else:
-            print(f"✅ Pinecone index {PINECONE_INDEX_NAME} already exists")
-        
+            logger.info("Using existing Pinecone index: %s", PINECONE_INDEX_NAME)
+
         index = pc.Index(PINECONE_INDEX_NAME)
-        print(f"✅ Connected to index: {PINECONE_INDEX_NAME}")
         return index
-    
     except Exception as e:
-        print(f"❌ ERROR initializing Pinecone: {e}")
-        sys.exit(1)
+        logger.exception("Error initializing Pinecone: %s", e)
+        raise
 
-def get_db_connection():
-    """Get MySQL connection"""
+def upsert_batch(index, batch_vectors: List[Dict[str, Any]]):
+    if not batch_vectors:
+        return
     try:
-        return pymysql.connect(**DB_CONFIG)
+        index.upsert(vectors=batch_vectors)
+        logger.debug("Upserted batch size=%d", len(batch_vectors))
     except Exception as e:
-        print(f"❌ ERROR connecting to database: {e}")
-        sys.exit(1)
+        logger.exception("Batch upsert failed: %s", e)
+        for v in batch_vectors:
+            try:
+                index.upsert(vectors=[v])
+                time.sleep(UPSERT_SLEEP / 4)
+            except Exception:
+                logger.exception("Failed to upsert vector id=%s", v.get("id"))
 
-def fetch_products():
-    """Fetch all products from database"""
-    connection = get_db_connection()
-    products = []
-    
+def vectorize_all_products(limit: Optional[int] = None, delete_existing_index: bool = False, incremental: bool = True):
+    logger.info("Starting vectorization pipeline (incremental=%s)", incremental)
+    embeddings = init_embeddings()
+    index = init_pinecone(delete_existing=delete_existing_index)
+    products = fetch_all_products(limit=limit)
+    if not products:
+        logger.warning("No products to process, exiting.")
+        return
+
+    conn = get_db_connection()
+    batch = []
+    processed = 0
+    updated = 0
+    skipped = 0
+    start_time = time.time()
+
     try:
-        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            cursor.execute("""
-                SELECT uid, name, description, price, brand, category, quantity
-                FROM Products
-            """)
-            products = cursor.fetchall()
-            print(f"✅ Fetched {len(products)} products from database")
-            
-            # Show sample products
-            for i, product in enumerate(products[:3]):
-                print(f"   Sample {i+1}: {product['name'][:50]}...")
+        for row in products:
+            try:
+                uid = safe_uuid(row.get("uid"))
+                if not uid:
+                    logger.warning("Skipping product with missing uid: %s", row.get("name"))
+                    continue
+
+                vector_id = f"prod_{uid}"
                 
-    except Exception as e:
-        print(f"❌ ERROR fetching products: {e}")
-    finally:
-        connection.close()
-    
-    return products
+                # Check if we need to update this product (incremental mode)
+                if incremental:
+                    existing_metadata = get_vector_metadata(index, vector_id)
+                    if not has_product_changed(row, existing_metadata):
+                        logger.debug("Skipping unchanged product: %s (UID: %s)", row.get("name"), uid)
+                        skipped += 1
+                        continue
 
-def fetch_reviews():
-    """Fetch all reviews from database"""
-    connection = get_db_connection()
-    reviews = []
-    
-    try:
-        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            cursor.execute("""
-                SELECT rating, review_text, product_uid, user_name
-                FROM ProductReview
-            """)
-            reviews = cursor.fetchall()
-            print(f"✅ Fetched {len(reviews)} reviews from database")
-    except Exception as e:
-        print(f"❌ ERROR fetching reviews: {e}")
-    finally:
-        connection.close()
-    
-    return reviews
+                logger.info("Processing product: %s (UID: %s)", row.get("name"), uid)
+                
+                reviews = get_product_reviews(conn, uid, limit=50)
+                logger.info("Found %d reviews for product %s", len(reviews), uid)
+                
+                doc = create_product_document(row, reviews)
+                emb = embeddings.embed_query(doc.page_content)
+                emb = [float(x) for x in emb]
 
-def create_documents(products, reviews):
-    """Create Document objects from products and reviews"""
-    documents = []
-    
-    # Create product documents
-    for product in products:
-        try:
-            product_id = str(uuid.UUID(bytes=product['uid'])) if isinstance(product['uid'], bytes) else str(product['uid'])
-            
-            # Clean HTML from description and extract meaningful text
-            clean_description = extract_clean_text(product.get('description', ''), 200)
-            
-            product_text = f"""Product: {product['name']}
-Brand: {product.get('brand', 'Not specified')}
-Category: {product.get('category', 'Not specified')}
-Price: ${product.get('price', 0)}
-Description: {clean_description}
-Available Quantity: {product.get('quantity', 0)} units"""
-            
-            documents.append(Document(
-                page_content=product_text,
-                metadata={
-                    "type": "product",
-                    "product_id": product_id,
-                    "name": product['name'],
-                    "category": product.get('category', ''),
-                    "price": str(product.get('price', 0)),
-                    "source": "product"
+                vector_meta = doc.metadata.copy()
+                vector_meta["_preview"] = doc.page_content
+
+                vect = {
+                    "id": vector_id,
+                    "values": emb,
+                    "metadata": vector_meta
                 }
-            ))
-        except Exception as e:
-            print(f"⚠️ Error creating product document: {e}")
-            continue
-    
-    # Create review documents
-    for review in reviews:
-        try:
-            product_id = str(uuid.UUID(bytes=review['product_uid'])) if isinstance(review['product_uid'], bytes) else str(review['product_uid'])
-            
-            # Clean review text
-            clean_review = clean_html(review.get('review_text', ''))
-            
-            review_text = f"""Review Rating: {review['rating']}/5
-Reviewer: {review['user_name']}
-Comment: {clean_review}"""
-            
-            documents.append(Document(
-                page_content=review_text,
-                metadata={
-                    "type": "review",
-                    "product_id": product_id,
-                    "rating": str(review['rating']),
-                    "reviewer": review['user_name'],
-                    "source": "review"
-                }
-            ))
-        except Exception as e:
-            print(f"⚠️ Error creating review document: {e}")
-            continue
-    
-    print(f"✅ Created {len(documents)} documents total")
-    return documents
 
-def vectorize_and_upload(documents, embeddings, index):
-    """Vectorize documents and upload to Pinecone"""
-    print(f"🔄 Starting vectorization of {len(documents)} documents...")
-    
-    # Clear existing vectors
-    try:
-        print("🧹 Clearing existing vectors from index...")
-        index.delete(delete_all=True)
-        time.sleep(10)
-        print("✅ Index cleared")
-    except Exception as e:
-        print(f"⚠️ Note: Could not clear index (might be empty): {e}")
-    
-    vectors_to_upsert = []
-    batch_size = 50
-    successful_uploads = 0
-    
-    for i, doc in enumerate(documents):
-        try:
-            # Generate embedding
-            embedding = embeddings.embed_query(doc.page_content)
-            
-            # Ensure it's a list of floats
-            if not isinstance(embedding, list):
-                embedding = list(embedding)
-            embedding = [float(x) for x in embedding]
-            
-            # Verify embedding dimension
-            if len(embedding) != 384:
-                print(f"⚠️ WARNING: Embedding dimension {len(embedding)} != 384")
+                batch.append(vect)
+                processed += 1
+                updated += 1
+
+                if len(batch) >= BATCH_SIZE:
+                    upsert_batch(index, batch)
+                    batch = []
+                    time.sleep(UPSERT_SLEEP)
+
+                if processed % 5 == 0:
+                    logger.info("Processed %d products (updated: %d, skipped: %d)", 
+                               processed, updated, skipped)
+                    if reviews:
+                        logger.info("Sample - Product: %s, Reviews: %d, Avg Rating: %.1f", 
+                                   row.get("name"), len(reviews), 
+                                   doc.metadata.get("average_rating", 0))
+
+            except Exception as e:
+                logger.exception("Error processing product uid=%s: %s", uid, e)
                 continue
-            
-            # Create unique vector ID
-            vector_id = f"doc_{i}_{uuid.uuid4().hex[:8]}"
-            
-            # Prepare metadata
-            metadata = {
-                "text": doc.page_content[:1000],
-                "type": doc.metadata.get("type", "unknown"),
-                "product_id": doc.metadata.get("product_id", ""),
-                "name": doc.metadata.get("name", "")[:200],
-                "category": doc.metadata.get("category", "")[:200],
-                "source": doc.metadata.get("source", "unknown")
-            }
-            
-            # Add review-specific metadata
-            if doc.metadata.get("type") == "review":
-                metadata["rating"] = doc.metadata.get("rating", "")
-                metadata["reviewer"] = doc.metadata.get("reviewer", "")[:200]
-            
-            vector_record = {
-                "id": vector_id,
-                "values": embedding,
-                "metadata": metadata
-            }
-            vectors_to_upsert.append(vector_record)
-            
-            # Upsert in batches
-            if len(vectors_to_upsert) >= batch_size:
-                print(f"📤 Upserting batch {(i // batch_size) + 1} with {len(vectors_to_upsert)} vectors...")
-                try:
-                    index.upsert(vectors=vectors_to_upsert)
-                    successful_uploads += len(vectors_to_upsert)
-                    vectors_to_upsert = []
-                    time.sleep(2)  # Small delay between batches
-                except Exception as e:
-                    print(f"❌ ERROR in batch upsert: {e}")
-                    vectors_to_upsert = []
-            
-            if (i + 1) % 20 == 0:
-                print(f"📊 Processed {i + 1}/{len(documents)} documents")
-        
-        except Exception as e:
-            print(f"❌ ERROR processing document {i}: {e}")
-            continue
-    
-    # Upsert any remaining vectors
-    if vectors_to_upsert:
-        print(f"📤 Upserting final batch with {len(vectors_to_upsert)} vectors...")
-        try:
-            index.upsert(vectors=vectors_to_upsert)
-            successful_uploads += len(vectors_to_upsert)
-        except Exception as e:
-            print(f"❌ ERROR in final upsert: {e}")
-    
-    print(f"✅ Vectorization complete! Successfully uploaded {successful_uploads} vectors")
-    return successful_uploads
 
-def verify_upload(index):
-    """Verify that vectors were uploaded"""
-    try:
-        stats = index.describe_index_stats()
-        print(f"📊 Pinecone Index Stats:")
-        print(f"   Total Vectors: {stats.total_vector_count}")
-        print(f"   Dimension: {stats.dimension}")
-        
-        return stats.total_vector_count > 0
-    except Exception as e:
-        print(f"❌ ERROR verifying upload: {e}")
-        return False
+        if batch:
+            upsert_batch(index, batch)
+
+        try:
+            stats = index.describe_index_stats()
+            total_vectors = stats.total_vector_count if hasattr(stats, "total_vector_count") else "unknown"
+            logger.info("Vectorization complete: processed=%d, updated=%d, skipped=%d, index_total_vectors=%s, elapsed=%.1fs",
+                        processed, updated, skipped, total_vectors, time.time() - start_time)
+        except Exception as e:
+            logger.warning("Could not fetch index stats: %s", e)
+
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 def main():
-    """Main vectorization workflow"""
-    print("=" * 60)
-    print("🚀 Starting Pinecone Vectorization Process")
-    print("=" * 60)
-    
-    try:
-        # Initialize components
-        embeddings = init_embeddings()
-        index = init_pinecone()
-        
-        # Fetch data
-        print("🔄 Fetching data from MySQL database...")
-        products = fetch_products()
-        reviews = fetch_reviews()
-        
-        if not products and not reviews:
-            print("❌ ERROR: No data found in database")
-            sys.exit(1)
-        
-        # Create documents
-        documents = create_documents(products, reviews)
-        
-        if not documents:
-            print("❌ ERROR: No documents created")
-            sys.exit(1)
-        
-        # Vectorize and upload
-        uploaded_count = vectorize_and_upload(documents, embeddings, index)
-        
-        if uploaded_count == 0:
-            print("❌ ERROR: No vectors were uploaded")
-            sys.exit(1)
-        
-        # Verify
-        print("🔍 Verifying upload...")
-        success = verify_upload(index)
-        
-        if success:
-            print("\n🎉 Vectorization completed successfully!")
-            print(f"✅ Uploaded {uploaded_count} vectors to Pinecone")
-            print("🤖 Your Pinecone vector store is now populated and ready for AI queries.")
-        else:
-            print("\n⚠️ Vectorization may have issues. Check the logs above.")
-    
-    except Exception as e:
-        print(f"\n💥 FATAL ERROR: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    import argparse
+    parser = argparse.ArgumentParser(description="Vectorize products and upload to Pinecone")
+    parser.add_argument("--limit", type=int, default=None, help="Limit the number of products to process")
+    parser.add_argument("--batch-size", type=int, default=None, help="Pinecone upsert batch size")
+    parser.add_argument("--delete-index", action="store_true", help="Delete existing index before starting")
+    parser.add_argument("--full-sync", action="store_true", help="Force full sync (ignore incremental updates)")
+    args = parser.parse_args()
+
+    current_batch_size = BATCH_SIZE
+    if args.batch_size:
+        current_batch_size = args.batch_size
+        logger.info("Using batch size: %d", current_batch_size)
+
+    vectorize_all_products(
+        limit=args.limit, 
+        delete_existing_index=args.delete_index,
+        incremental=not args.full_sync
+    )
 
 if __name__ == "__main__":
     main()

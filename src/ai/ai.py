@@ -64,7 +64,7 @@ def extract_clean_text(html_text, max_length=300):
     return meaningful_text.strip() or clean_text[:max_length]
 
 class GroqChat:
-    def __init__(self, api_key, model_name="llama-3.1-8b-instant", temperature=0.1):
+    def __init__(self, api_key, model_name="openai/gpt-oss-20b", temperature=0.1):
         self.api_key = api_key
         self.model_name = model_name
         self.temperature = temperature
@@ -120,9 +120,23 @@ class MultilingualPromptBuilder:
     3. Help customers create and manage orders
     4. Assist with returns, shipping, and policies
     
-    If the information isn't in the context, politely say you don't know and suggest 
-    contacting customer support for more specific queries."""
+    CRITICAL RESPONSE FORMAT RULES:
+    - Use ONLY plain text format, no markdown, no tables, no asterisks, no special formatting
+    - No **bold**, *italic*, | tables, --- lines, or ### headers
+    - Use simple line breaks and natural language only
+    - Write in clear, conversational English
+    - Do not use any special characters for formatting
     
+    CONTENT GUIDELINES:
+    - If you find relevant products in the context, ALWAYS mention them and provide details
+    - Only say you don't know if there is truly no relevant information in the context
+    - When suggesting products, include in natural sentences:
+      * Product name and key features
+      * Price and any discounts
+      * Customer ratings and reviews
+      * Why it matches their request
+    - Focus on providing directly relevant information to the user's specific query"""
+
     BENGALI_SYSTEM_PROMPT = """আপনি একটি ই-কমার্স ওয়েবসাইটের জন্য একজন AI গ্রাহক সহায়তা সহায়ক।
     ব্যবহারকারীর প্রশ্নের উত্তর দিতে প্রদত্ত প্রসঙ্গ ব্যবহার করুন এবং সঠিক ও সহায়ক উত্তর দিন।
     
@@ -132,7 +146,22 @@ class MultilingualPromptBuilder:
     3. গ্রাহকদের অর্ডার তৈরি এবং পরিচালনায় সহায়তা করা
     4. রিটার্ন, শিপিং এবং নীতি সম্পর্কে সহায়তা করা
     
-    যদি প্রসঙ্গে তথ্য না থাকে, বিনয়ের সাথে বলুন আপনি জানেন না এবং গ্রাহক সহায়তার সাথে যোগাযোগ করার পরামর্শ দিন।"""
+    গুরুত্বপূর্ণ প্রতিক্রিয়া ফরম্যাট নিয়ম:
+    - শুধুমাত্র সাধারণ টেক্সট ফরম্যাট ব্যবহার করুন, মার্কডাউন নয়, টেবিল নয়, তারকাচিহ্ন নয়, বিশেষ ফরম্যাটিং নয়
+    - **বোল্ড**, *ইটালিক*, | টেবিল, --- লাইন, বা ### হেডার ব্যবহার করবেন না
+    - সহল লাইন ব্রেক এবং প্রাকৃতিক ভাষা ব্যবহার করুন
+    - পরিষ্কার, কথোপকথনমূলক বাংলায় লিখুন
+    - ফরম্যাটিংয়ের জন্য কোন বিশেষ অক্ষর ব্যবহার করবেন না
+    
+    বিষয়বস্তু নির্দেশিকা:
+    - যদি প্রসঙ্গে প্রাসঙ্গিক পণ্য পাওয়া যায়, তবে সেগুলো অবশ্যই উল্লেখ করুন এবং বিস্তারিত প্রদান করুন
+    - শুধুমাত্র তখনই বলুন আপনি জানেন না যখন প্রসঙ্গে সত্যিই কোন প্রাসঙ্গিক তথ্য নেই
+    - পণ্য সুপারিশ করার সময় প্রাকৃতিক বাক্যে অন্তর্ভুক্ত করুন:
+      * পণ্যের নাম এবং প্রধান বৈশিষ্ট্য
+      * মূল্য এবং কোন ডিসকাউন্ট
+      * গ্রাহক রেটিং এবং পর্যালোচনা
+      * কেন এটি তাদের অনুরোধের সাথে মেলে
+    - ব্যবহারকারীর নির্দিষ্ট প্রশ্নের সাথে সরাসরি প্রাসঙ্গিক তথ্য প্রদান করুন"""
     
     @staticmethod
     def build_prompt(user_query, context, language='english', user_context=None):
@@ -140,20 +169,42 @@ class MultilingualPromptBuilder:
         
         if language == 'bengali':
             system_prompt = MultilingualPromptBuilder.BENGALI_SYSTEM_PROMPT
-            user_content = f"""আমাদের জ্ঞান ভিত্তি থেকে প্রাসঙ্গিক তথ্য:
+            if context and "No specific product information" not in context:
+                user_content = f"""প্রাসঙ্গিক পণ্য তথ্য:
 {context}
 
 ব্যবহারকারীর প্রশ্ন: {user_query}
 
-উপরের তথ্যের উপর ভিত্তি করে একটি সহায়ক প্রতিক্রিয়া প্রদান করুন।"""
+উপরের তথ্যের উপর ভিত্তি করে একটি সহায়ক প্রতিক্রিয়া প্রদান করুন। নিম্নলিখিত বিষয়গুলি অন্তর্ভুক্ত করুন:
+- সরাসরি ব্যবহারকারীর প্রশ্নের উত্তর দিন
+- প্রাসঙ্গিক পণ্যগুলো উল্লেখ করুন এবং বিস্তারিত জানান
+- প্রাকৃতিক, কথোপকথনমূলক বাংলায় লিখুন
+- কোন টেবিল, বোল্ড টেক্সট, বা বিশেষ ফরম্যাটিং ব্যবহার করবেন না
+- গ্রাহক পর্যালোচনা এবং রেটিং সম্পর্কে তথ্য দিন
+- শুধুমাত্র সরাসরি প্রাসঙ্গিক পণ্য সম্পর্কে কথা বলুন"""
+            else:
+                user_content = f"""ব্যবহারকারীর প্রশ্ন: {user_query}
+
+দুঃখিত, আমাদের ডাটাবেসে এই বিশেষ পণ্য সম্পর্কে তথ্য নেই। আপনি অন্য কোন পণ্য সম্পর্কে জানতে চান?"""
         else:
             system_prompt = MultilingualPromptBuilder.ENGLISH_SYSTEM_PROMPT
-            user_content = f"""Relevant Information from our knowledge base:
+            if context and "No specific product information" not in context:
+                user_content = f"""Relevant Product Information:
 {context}
 
 User Question: {user_query}
 
-Please provide a helpful response based on the information above."""
+Please provide a helpful response based on the information above. Include:
+- Direct answer to user's specific question
+- Mention relevant products with details in natural sentences
+- Write in conversational, plain English only
+- No tables, bold text, or special formatting
+- Include information about customer reviews and ratings
+- Focus only on directly relevant products"""
+            else:
+                user_content = f"""User Question: {user_query}
+
+I'm sorry, we don't have information about this specific product in our database. Is there another product you'd like to know about?"""
         
         return system_prompt, user_content
 
@@ -175,7 +226,7 @@ class EcommerceAICustomerSupport:
         # Initialize Groq LLM
         self.llm = GroqChat(
             api_key=os.getenv("GROQ_API_KEY"),
-            model_name="llama-3.1-8b-instant",
+            model_name="openai/gpt-oss-20b",
             temperature=0.1
         )
         
@@ -203,14 +254,37 @@ class EcommerceAICustomerSupport:
         
         self.pinecone_available = self.setup_pinecone()
         
-        self.auto_vectorize_on_startup()
-        
         EcommerceAICustomerSupport._initialized = True
         
         if self.pinecone_available:
             logger.info("✅ Pinecone initialized successfully (singleton)")
         else:
             logger.warning("⚠️ Pinecone not available - AI will use database queries only")
+
+    def clean_ai_response(self, response):
+        """Clean AI response by removing markdown formatting"""
+        if not response:
+            return response
+            
+        # Remove markdown bold
+        response = re.sub(r'\*\*(.*?)\*\*', r'\1', response)
+        # Remove markdown italic
+        response = re.sub(r'\*(.*?)\*', r'\1', response)
+        # Remove markdown headers
+        response = re.sub(r'#+\s*(.*)', r'\1', response)
+        # Remove table formatting
+        response = re.sub(r'\|.*?\|\n?', '', response)
+        response = re.sub(r'\-+\s*\-+', '', response)
+        # Remove HTML line breaks
+        response = re.sub(r'<br\s*/?>', '\n', response)
+        # Remove other markdown elements
+        response = re.sub(r'`{1,3}(.*?)`{1,3}', r'\1', response)
+        # Clean up extra whitespace
+        response = re.sub(r'\n\s*\n', '\n\n', response)
+        response = re.sub(r' +', ' ', response)
+        response = response.strip()
+        
+        return response
 
     def setup_pinecone(self):
         if hasattr(self, 'index') and self.index is not None:
@@ -253,121 +327,6 @@ class EcommerceAICustomerSupport:
             self.index = None
             return False
 
-    def auto_vectorize_on_startup(self):
-        """Automatically vectorize database on startup if Pinecone is empty"""
-        try:
-            if not hasattr(self, 'index') or self.index is None:
-                logger.info("📦 Skipping auto-vectorization: Pinecone index not available")
-                return
-            
-            stats = self.index.describe_index_stats()
-            vector_count = stats.total_vector_count
-            
-            if vector_count == 0:
-                logger.info("🔄 Pinecone is empty. Starting auto-vectorization...")
-                self.vectorize_database()
-            else:
-                logger.info(f"✅ Pinecone already has {vector_count} vectors. Skipping vectorization.")
-        
-        except Exception as e:
-            logger.warning(f"⚠️ Error checking vectorization status: {e}")
-
-    def vectorize_database(self):
-        """Vectorize products and reviews from database"""
-        try:
-            logger.info("🚀 Starting automatic database vectorization...")
-            
-            connection = self.get_db_connection()
-            products = []
-            reviews = []
-            
-            # Fetch products
-            with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-                cursor.execute("""
-                    SELECT uid, name, description, price, brand, category, quantity
-                    FROM Products LIMIT 100
-                """)
-                products = cursor.fetchall()
-                logger.info(f"✅ Fetched {len(products)} products")
-                
-                # Fetch reviews
-                cursor.execute("""
-                    SELECT rating, review_text, product_uid, user_name
-                    FROM ProductReview LIMIT 500
-                """)
-                reviews = cursor.fetchall()
-                logger.info(f"✅ Fetched {len(reviews)} reviews")
-            
-            connection.close()
-            
-            # Create documents and vectorize
-            vectors_to_upsert = []
-            doc_count = 0
-            
-            # Process products
-            for i, product in enumerate(products):
-                try:
-                    product_id = str(uuid.UUID(bytes=product['uid'])) if isinstance(product['uid'], bytes) else str(product['uid'])
-                    clean_description = extract_clean_text(product.get('description', ''), 200)
-                    
-                    product_text = f"""Product: {product['name']}
-Brand: {product.get('brand', 'Not specified')}
-Category: {product.get('category', 'Not specified')}
-Price: ${product.get('price', 0)}
-Description: {clean_description}
-Available Quantity: {product.get('quantity', 0)} units"""
-                    
-                    embedding = self.embeddings.embed_query(product_text)
-                    embedding = [float(x) for x in embedding]
-                    
-                    vectors_to_upsert.append({
-                        "id": f"product_{i}_{uuid.uuid4().hex[:8]}",
-                        "values": embedding,
-                        "metadata": {
-                            "text": product_text[:1000],
-                            "type": "product",
-                            "product_id": product_id,
-                            "name": product['name'][:200],
-                            "source": "product"
-                        }
-                    })
-                    doc_count += 1
-                except Exception as e:
-                    logger.warning(f"⚠️ Error processing product {i}: {e}")
-            
-            # Process reviews
-            for i, review in enumerate(reviews):
-                try:
-                    clean_review = clean_html(review.get('review_text', ''))
-                    review_text = f"Review Rating: {review['rating']}/5\nReviewer: {review['user_name']}\nComment: {clean_review}"
-                    
-                    embedding = self.embeddings.embed_query(review_text)
-                    embedding = [float(x) for x in embedding]
-                    
-                    vectors_to_upsert.append({
-                        "id": f"review_{i}_{uuid.uuid4().hex[:8]}",
-                        "values": embedding,
-                        "metadata": {
-                            "text": review_text[:1000],
-                            "type": "review",
-                            "rating": str(review['rating']),
-                            "reviewer": review['user_name'][:200],
-                            "source": "review"
-                        }
-                    })
-                    doc_count += 1
-                except Exception as e:
-                    logger.warning(f"⚠️ Error processing review {i}: {e}")
-            
-            # Upsert all vectors
-            if vectors_to_upsert:
-                logger.info(f"📤 Upserting {len(vectors_to_upsert)} vectors to Pinecone...")
-                self.index.upsert(vectors=vectors_to_upsert)
-                logger.info(f"✅ Auto-vectorization complete! {len(vectors_to_upsert)} vectors uploaded")
-            
-        except Exception as e:
-            logger.error(f"❌ Error during auto-vectorization: {e}")
-
     def generate_chat_id(self, user_id=None):
         """Generate unique chat ID for conversation"""
         if user_id:
@@ -377,7 +336,7 @@ Available Quantity: {product.get('quantity', 0)} units"""
         
         return chat_id
 
-    def search_similar_documents(self, query, k=3):
+    def search_similar_documents(self, query, k=5):
         """Search for similar documents in Pinecone"""
         try:
             if not hasattr(self, 'index') or self.index is None:
@@ -395,8 +354,15 @@ Available Quantity: {product.get('quantity', 0)} units"""
             
             documents = []
             for match in results.matches:
-                # Clean the text before creating document
-                clean_content = clean_html(match.metadata.get("text", ""))
+                # Use the _preview field which contains the full product information
+                preview_content = match.metadata.get("_preview", "")
+                if not preview_content:
+                    # Fallback to text field if _preview doesn't exist
+                    preview_content = match.metadata.get("text", "")
+                
+                # Clean the content
+                clean_content = clean_html(preview_content)
+                
                 doc = Document(
                     page_content=clean_content,
                     metadata=match.metadata
@@ -568,46 +534,49 @@ Available Quantity: {product.get('quantity', 0)} units"""
         
         return reviews
 
-    def extract_relevant_context(self, query, context):
-        """Filter and show only relevant information based on question"""
-        try:
-            query_lower = query.lower()
-            
-            # Extract relevant keywords from query
-            review_keywords = ['review', 'reviews', 'rating', 'ratings', 'feedback', 'opinion', 'মতামত', 'রেটিং']
-            price_keywords = ['price', 'cost', 'expensive', 'cheap', 'budget', 'afford', 'দাম', 'মূল্য']
-            availability_keywords = ['available', 'stock', 'quantity', 'buy', 'purchase', 'স্টক', 'উপলব্ধ']
-            description_keywords = ['feature', 'features', 'specification', 'specs', 'what', 'product', 'about', 'বৈশিষ্ট্য', 'পণ্য']
-            
-            # Determine query type
-            is_review = any(kw in query_lower for kw in review_keywords)
-            is_price = any(kw in query_lower for kw in price_keywords)
-            is_availability = any(kw in query_lower for kw in availability_keywords)
-            is_description = any(kw in query_lower for kw in description_keywords)
-            
-            # Filter context based on query type
-            filtered_lines = []
-            for line in context.split('\n'):
-                line_lower = line.lower()
-                
-                # Include relevant lines
-                if is_review and any(kw in line_lower for kw in ['review', 'rating', 'feedback', 'রেটিং', 'মতামত']):
-                    filtered_lines.append(line)
-                elif is_price and any(kw in line_lower for kw in ['price', 'cost', 'afford', 'দাম']):
-                    filtered_lines.append(line)
-                elif is_availability and any(kw in line_lower for kw in ['quantity', 'available', 'stock', 'স্টক']):
-                    filtered_lines.append(line)
-                elif is_description and any(kw in line_lower for kw in ['description', 'feature', 'specification', 'বৈশিষ্ট্য']):
-                    filtered_lines.append(line)
-                # Always include important headers and summaries
-                elif any(header in line_lower for header in ['product:', 'brand:', 'category:', 'summary:']):
-                    filtered_lines.append(line)
-            
-            return '\n'.join(filtered_lines) if filtered_lines else context
+    def format_pinecone_context(self, pinecone_docs):
+        """Format Pinecone documents into readable context"""
+        if not pinecone_docs:
+            return ""
         
-        except Exception as e:
-            logger.warning(f"⚠️ Error filtering context: {e}")
-            return context
+        context = "Available Products:\n\n"
+        
+        for i, doc in enumerate(pinecone_docs):
+            metadata = doc.metadata
+            context += f"Product {i+1}:\n"
+            context += f"Name: {metadata.get('name', 'Unknown')}\n"
+            context += f"Category: {metadata.get('category', 'Not specified')}\n"
+            context += f"Brand: {metadata.get('brand', 'Not specified')}\n"
+            context += f"Price: {metadata.get('price', 0)} BDT\n"
+            
+            discount = metadata.get('discount', 0)
+            if discount and discount > 0:
+                context += f"Discount: {discount}%\n"
+            
+            avg_rating = metadata.get('average_rating', 0)
+            review_count = metadata.get('review_count', 0)
+            context += f"Rating: {avg_rating}/5 ({review_count} reviews)\n"
+            
+            # Add tags if available
+            tags = metadata.get('tags', [])
+            if tags and isinstance(tags, list):
+                context += f"Tags: {', '.join(tags[:8])}\n"
+            
+            # Add key features from the preview
+            preview = doc.page_content
+            if preview:
+                # Extract key lines from preview
+                lines = preview.split('\n')
+                key_info = [line for line in lines if any(keyword in line.lower() for keyword in 
+                         ['summary:', 'description:', 'key features', 'attributes:'])]
+                if key_info:
+                    context += "Key Information:\n"
+                    for info in key_info[:3]:  # Limit to 3 key points
+                        context += f"- {info}\n"
+            
+            context += "\n" + "="*50 + "\n\n"
+        
+        return context
 
     def get_customer_response(self, user_query, user_context=None, user_id=None, chat_id=None, conversation_history=None, product_context=None):
         """Get AI response with both Pinecone and database integration, with conversation context"""
@@ -623,113 +592,37 @@ Available Quantity: {product.get('quantity', 0)} units"""
             pinecone_docs = []
             tracked_products = product_context or {}
         
-            if conversation_history and len(conversation_history) > 0:
-                logger.info(f"[v0] Conversation history found: {len(conversation_history)} messages")
-                last_user_messages = [msg for msg in conversation_history if msg.get("role") == "user"][-2:] if conversation_history else []
-                logger.info(f"[v0] Last user messages: {[m.get('content')[:30] for m in last_user_messages]}")
-        
-            # First, try Pinecone vector search
+            # First, try Pinecone vector search - this is the primary source
             if self.pinecone_available:
                 logger.info("🔍 Searching Pinecone vector store...")
-                pinecone_docs = self.search_similar_documents(user_query, k=3)
+                pinecone_docs = self.search_similar_documents(user_query, k=5)
+                
                 if pinecone_docs:
-                    context += "Relevant Information:\n"
-                    for doc in pinecone_docs:
-                        context += f"- {doc.page_content}\n\n"
-                    logger.info("✅ Using Pinecone context")
+                    logger.info(f"✅ Found {len(pinecone_docs)} relevant products in Pinecone")
+                    context = self.format_pinecone_context(pinecone_docs)
+                else:
+                    logger.info("❌ No products found in Pinecone")
+                    context = "No specific product information found in our database."
         
-            # Check for specific product review queries
-            review_keywords = ['review', 'reviews', 'rating', 'ratings', 'feedback', 'opinion', 'মতামত', 'রেটিং', 'পর্যালোচনা']
-            is_review_query = any(keyword in user_query.lower() for keyword in review_keywords)
-        
-            # Extract product name from query or use from conversation context
-            product_name = None
-        
-            if tracked_products:
-                for prod_name in tracked_products.keys():
-                    if any(word in user_query.lower() for word in prod_name.lower().split()):
-                        product_name = prod_name
-                        logger.info(f"[v0] Recognized product from conversation: {product_name}")
-                        break
-        
-            # If no tracked product found, extract from current query
-            if not product_name and is_review_query:
-                words = user_query.split()
-                for i, word in enumerate(words):
-                    if word.lower() in ['product', 'item', 'about', 'for', 'পণ্য', 'আইটেম'] and i + 1 < len(words):
-                        product_name = ' '.join(words[i+1:i+4])
-                        break
-            
-                if not product_name:
-                    common_words = ['tell', 'me', 'about', 'the', 'product', 'reviews', 'review', 'people', 'what', 'are', 'is', 'of']
-                    product_words = [word for word in words if word.lower() not in common_words and len(word) > 2]
-                    if product_words:
-                        product_name = ' '.join(product_words[:3])
-        
-            # If it's a review query and we have a product name, get specific reviews
-            if is_review_query and product_name:
-                logger.info(f"🔍 Searching for reviews of: {product_name}")
-                product_reviews = self.get_product_reviews_from_db(product_name)
-            
-                if product_reviews:
-                    context += f"\nCustomer Reviews for '{product_name}':\n"
-                    for i, review in enumerate(product_reviews[:5]):
-                        stars = "⭐" * review['rating']
-                        context += f"\n{i+1}. {stars} ({review['rating']}/5) by {review['reviewer']}\n"
-                        context += f"   \"{review['text']}\"\n"
-                        context += f"   Date: {review['date']}\n"
-                
-                    total_reviews = len(product_reviews)
-                    avg_rating = sum(r['rating'] for r in product_reviews) / total_reviews if total_reviews > 0 else 0
-                    context += f"\nSummary: {total_reviews} total reviews, Average rating: {avg_rating:.1f}/5\n"
-                    logger.info(f"✅ Found {len(product_reviews)} reviews")
-                
-                    tracked_products[product_name] = {
-                        "avg_rating": avg_rating,
-                        "total_reviews": total_reviews,
-                        "mentioned_at": str(__import__('datetime').datetime.now())
-                    }
-        
-            # If no specific context found yet, use general product search
-            if not context or (not pinecone_docs and not is_review_query):
-                logger.info("🔍 Using general product search...")
-            
+            # If no Pinecone results, fall back to database search
+            if not context or "No specific product information" in context:
+                logger.info("🔍 Falling back to database search...")
                 words = user_query.split()
                 search_keywords = [w for w in words if len(w) > 2]
-            
-                for keyword in search_keywords:
-                    recommendations = self.get_product_recommendations_with_reviews(keyword, limit=2)
                 
+                for keyword in search_keywords:
+                    recommendations = self.get_product_recommendations_with_reviews(keyword, limit=3)
                     if recommendations:
                         logger.info(f"✅ Found {len(recommendations)} products in database")
-                        context += "\nProduct Information:\n"
+                        context = "Available Products:\n\n"
                         for product in recommendations:
-                            stars = "⭐" * int(product['average_rating'])
-                            context += f"\n- Product: {product['name']}"
-                            context += f"\n  Brand: {product['brand']}"
-                            context += f"\n  Price: ${product['price']}"
-                            context += f"\n  Category: {product['category']}"
-                            context += f"\n  Description: {product['description']}"
-                            context += f"\n  Rating: {stars} ({product['average_rating']}/5 from {product['total_reviews']} reviews)"
-                        
-                            if product['top_reviews']:
-                                context += "\n  Recent Reviews:"
-                                for review in product['top_reviews']:
-                                    review_stars = "⭐" * review['rating']
-                                    context += f"\n    - {review_stars} {review['reviewer']}: {review['text']}"
-                        
-                            tracked_products[product['name']] = {
-                                "price": product['price'],
-                                "avg_rating": product['average_rating'],
-                                "total_reviews": product['total_reviews'],
-                                "mentioned_at": str(__import__('datetime').datetime.now())
-                            }
+                            context += f"Product: {product['name']}\n"
+                            context += f"Brand: {product['brand']}\n"
+                            context += f"Price: {product['price']} BDT\n"
+                            context += f"Category: {product['category']}\n"
+                            context += f"Rating: {product['average_rating']}/5 ({product['total_reviews']} reviews)\n"
+                            context += f"Description: {product['description']}\n\n"
                         break
-        
-            context = self.extract_relevant_context(user_query, context)
-        
-            if not context:
-                context = "No specific product information found. Please try rephrasing or ask about specific products."
         
             system_message, user_content = self.prompt_builder.build_prompt(
                 user_query=user_query,
@@ -745,15 +638,19 @@ Available Quantity: {product.get('quantity', 0)} units"""
         
             response = self.llm.invoke(messages)
             logger.info("✅ Groq response received")
+            
+            # Clean the response to remove markdown formatting
+            clean_response = self.clean_ai_response(response)
+            logger.info("✅ Response cleaned and formatted")
         
             # Store conversation with chat_id
             self.conversation_history.append({
                 "chat_id": chat_id,
                 "user_id": user_id,
                 "user": user_query,
-                "assistant": response,
+                "assistant": clean_response,
                 "language": detected_language,
-                "timestamp": str(__import__('datetime').datetime.now())
+                "timestamp": str(datetime.now())
             })
         
             # Keep only last 50 messages
@@ -761,12 +658,12 @@ Available Quantity: {product.get('quantity', 0)} units"""
                 self.conversation_history = self.conversation_history[-50:]
         
             return {
-                "answer": response,
+                "answer": clean_response,
                 "source_documents": pinecone_docs,
                 "conversation_history": self.conversation_history,
                 "language": detected_language,
                 "chat_id": chat_id,
-                "product_context": tracked_products  # Return tracked products
+                "product_context": tracked_products
             }
         
         except Exception as e:
@@ -783,7 +680,7 @@ Available Quantity: {product.get('quantity', 0)} units"""
                 "conversation_history": self.conversation_history,
                 "language": detected_language,
                 "chat_id": chat_id or "error",
-                "product_context": product_context or {}  # Return product context even on error
+                "product_context": product_context or {}
             }
 
     def get_user_context(self, user_id=None):
@@ -847,7 +744,7 @@ Available Quantity: {product.get('quantity', 0)} units"""
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 app = FastAPI(
     title="Ecommerce AI Customer Support",
@@ -911,9 +808,6 @@ async def chat_with_ai(request: ChatRequest):
             success=False
         )
 
-
-
-
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -922,9 +816,7 @@ async def health_check():
         "status": "healthy", 
         "service": "AI Customer Support",
         "pinecone": pinecone_status
-
     }
-
 
 if __name__ == "__main__":
     import uvicorn
