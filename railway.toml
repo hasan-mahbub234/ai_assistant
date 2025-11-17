@@ -1,9 +1,0 @@
-[deploy]
-builder = "nixpacks"
-
-[build]
-builder = "nixpacks"
-
-[[services]]
-name = "ai-customer-support"
-port = 8001
