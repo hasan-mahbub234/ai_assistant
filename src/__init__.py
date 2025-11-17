@@ -1,8 +1,12 @@
+# In __init__.py, replace the current content with:
+
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import os
+import gc
 
 from src.ai.routes import ai_router
 
@@ -20,6 +24,11 @@ ai_support_instance = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application startup and shutdown events for AI service only."""
+    # Memory optimization
+    gc.collect()
+    os.environ['TRANSFORMERS_CACHE'] = '/tmp'
+    os.environ['HF_HOME'] = '/tmp'
+    
     logger.info("🚀 AI Service is starting...")
     
     global ai_support_instance
@@ -38,7 +47,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ AI system initialization failed: {str(e)}")
         import traceback
         traceback.print_exc()
-        raise
+        # Don't raise, let the app start without AI if needed
     
     yield
     
@@ -58,20 +67,7 @@ def create_app() -> FastAPI:
     # Configure CORS for Vercel
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:3000",
-            "http://localhost:3001",
-            "http://192.168.0.100:3000",
-            "http://192.168.0.101:3000",
-            "http://192.168.0.102:3000",
-            "http://192.168.0.103:3000",
-            "http://192.168.114.253:3000",
-            "https://toprateddesigner.com",
-            "https://ecommerce-admin-panel-next-js.vercel.app",
-            "https://shulovmall.com",
-            "https://www.shulovmall.com",
-            "https://*.vercel.app"
-        ],
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -86,34 +82,12 @@ def create_app() -> FastAPI:
             content={"message": "Internal server error"},
         )
 
-    # Request logging middleware
-    @app.middleware("http")
-    async def log_requests(request: Request, call_next):
-        logger.info(f"AI Request: {request.method} {request.url}")
-        try:
-            response = await call_next(request)
-            logger.info(f"AI Response status: {response.status_code}")
-            return response
-        except Exception as e:
-            logger.error(f"AI Request failed: {str(e)}", exc_info=True)
-            raise
-
     # Include ONLY AI router
-    routers = [
-        (ai_router, "ai"),
-    ]
-
-    for router, tag in routers:
-        try:
-            app.include_router(
-                router,
-                prefix=f"/api/{version}/{tag}",
-                tags=[tag]
-            )
-            logger.info(f"✅ Successfully added {tag} router")
-        except Exception as e:
-            logger.error(f"❌ Failed to add {tag} router: {str(e)}")
-            raise
+    app.include_router(
+        ai_router,
+        prefix=f"/api/{version}/ai",
+        tags=["ai"]
+    )
 
     # Health check endpoint
     @app.get("/health", tags=["monitoring"])
@@ -121,7 +95,7 @@ def create_app() -> FastAPI:
         return {
             "status": "healthy", 
             "service": "AI Customer Support",
-            "deployment": "vercel"
+            "deployment": "railway"
         }
     
     # Root endpoint
@@ -138,5 +112,14 @@ def create_app() -> FastAPI:
 # Create the application instance
 app = create_app()
 
-# Vercel requires this for serverless functions
-handler = app
+# For Railway deployment
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port,
+        workers=1,
+        log_level="info"
+    )
