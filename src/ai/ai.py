@@ -2,7 +2,7 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-import gc
+
 import pymysql
 from pinecone import Pinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -13,15 +13,6 @@ import uuid
 import re
 import logging
 from datetime import datetime
-
-# Set cache directories to tmp to avoid memory issues
-os.environ['TRANSFORMERS_CACHE'] = '/tmp'
-os.environ['HF_HOME'] = '/tmp'
-os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = '1'
-
-def optimize_memory():
-    """Clear memory before starting"""
-    gc.collect()
 
 logger = logging.getLogger(__name__)
 
@@ -859,13 +850,5 @@ async def health_check():
     }
 
 if __name__ == "__main__":
-    optimize_memory()
     import uvicorn
-    port = int(os.getenv("PORT", 8001))
-    uvicorn.run(
-        app, 
-        host="0.0.0.0", 
-        port=port,
-        workers=1,  # Single worker for free tier
-        log_level="info"
-    )
+    uvicorn.run(app, host="0.0.0.0", port=8001)
