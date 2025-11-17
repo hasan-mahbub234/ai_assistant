@@ -1,8 +1,11 @@
+[build.environment]
+PYTHON_VERSION = "3.11"
+
 [phases.setup]
 cmds = [
     "apt-get update",
     "apt-get install -y g++",
-    "pip install --upgrade pip"
+    "python -m pip install --upgrade pip"
 ]
 
 [phases.install]
