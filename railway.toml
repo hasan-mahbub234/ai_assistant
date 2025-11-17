@@ -1,5 +1,5 @@
 [deploy]
-numReplicas = 1
+builder = "nixpacks"
 
 [build]
 builder = "nixpacks"
