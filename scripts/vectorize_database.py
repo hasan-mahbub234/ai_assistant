@@ -41,7 +41,7 @@ DB_CONFIG = {
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME") or "products-index"
-EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBED_DIMENSION = 384
 BATCH_SIZE = int(os.getenv("PINECONE_BATCH_SIZE") or 50)
 UPSERT_SLEEP = float(os.getenv("UPSERT_SLEEP") or 0.15)

@@ -2,23 +2,28 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
+import gc
 import pymysql
 from pinecone import Pinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 import requests
-import langdetect
 from langdetect import detect, LangDetectException
 import uuid
 import re
 import logging
 from datetime import datetime
 
-logger = logging.getLogger(__name__)
+# Set cache directories to tmp to avoid memory issues
+os.environ['TRANSFORMERS_CACHE'] = '/tmp'
+os.environ['HF_HOME'] = '/tmp'
+os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = '1'
 
-_pinecone_instance = None
-_pinecone_lock = None
+def optimize_memory():
+    """Clear memory before starting"""
+    gc.collect()
+
+logger = logging.getLogger(__name__)
 
 # Text cleaning functions
 def clean_html(text):
@@ -108,6 +113,37 @@ class LanguageDetector:
         except LangDetectException:
             return 'english'
 
+class ReviewIntentDetector:
+    """Detect if user is asking for reviews or ratings"""
+    
+    @staticmethod
+    def is_asking_for_reviews(query):
+        """Check if user is specifically asking for reviews or ratings"""
+        query_lower = query.lower()
+        
+        # English review-related keywords
+        english_keywords = [
+            'review', 'rating', 'rate', 'feedback', 'opinion', 
+            'experience', 'thoughts', 'how good', 'how bad',
+            'customer review', 'user review', 'what people say',
+            'is it good', 'is it worth', 'worth buying', 'recommend'
+        ]
+        
+        # Bengali review-related keywords
+        bengali_keywords = [
+            'রিভিউ', 'রেটিং', 'মতামত', 'অভিজ্ঞতা', 'কেমন', 
+            'কি মনে হয়', 'মান', 'গুণ', 'সুপারিশ',
+            'কাস্টমার রিভিউ', 'ব্যবহারকারীর রিভিউ', 'লোক কি বলে',
+            'কি ভালো', 'কি খারাপ', 'কিনতে ভালো', 'সুপারিশ কর'
+        ]
+        
+        # Check for review intent
+        for keyword in english_keywords + bengali_keywords:
+            if keyword in query_lower:
+                return True
+        
+        return False
+
 class MultilingualPromptBuilder:
     """Build prompts in appropriate language"""
     
@@ -127,15 +163,13 @@ class MultilingualPromptBuilder:
     - Write in clear, conversational English
     - Do not use any special characters for formatting
     
-    CONTENT GUIDELINES:
-    - If you find relevant products in the context, ALWAYS mention them and provide details
-    - Only say you don't know if there is truly no relevant information in the context
-    - When suggesting products, include in natural sentences:
-      * Product name and key features
-      * Price and any discounts
-      * Customer ratings and reviews
-      * Why it matches their request
-    - Focus on providing directly relevant information to the user's specific query"""
+    IMPORTANT REVIEW & RATING GUIDELINES:
+    - ONLY mention reviews/ratings when user specifically asks about them
+    - If user asks for reviews, show ALL reviews honestly - both good and bad
+    - If a product has no reviews, say "No reviews yet" when asked
+    - Only use positive reviews as purchase encouragement when relevant, but don't mention ratings unless asked
+    - NEVER automatically include rating numbers (like 4.2/5) unless user specifically asks
+    - Focus on product features, price, and availability as primary information"""
 
     BENGALI_SYSTEM_PROMPT = """আপনি একটি ই-কমার্স ওয়েবসাইটের জন্য একজন AI গ্রাহক সহায়তা সহায়ক।
     ব্যবহারকারীর প্রশ্নের উত্তর দিতে প্রদত্ত প্রসঙ্গ ব্যবহার করুন এবং সঠিক ও সহায়ক উত্তর দিন।
@@ -153,24 +187,35 @@ class MultilingualPromptBuilder:
     - পরিষ্কার, কথোপকথনমূলক বাংলায় লিখুন
     - ফরম্যাটিংয়ের জন্য কোন বিশেষ অক্ষর ব্যবহার করবেন না
     
-    বিষয়বস্তু নির্দেশিকা:
-    - যদি প্রসঙ্গে প্রাসঙ্গিক পণ্য পাওয়া যায়, তবে সেগুলো অবশ্যই উল্লেখ করুন এবং বিস্তারিত প্রদান করুন
-    - শুধুমাত্র তখনই বলুন আপনি জানেন না যখন প্রসঙ্গে সত্যিই কোন প্রাসঙ্গিক তথ্য নেই
-    - পণ্য সুপারিশ করার সময় প্রাকৃতিক বাক্যে অন্তর্ভুক্ত করুন:
-      * পণ্যের নাম এবং প্রধান বৈশিষ্ট্য
-      * মূল্য এবং কোন ডিসকাউন্ট
-      * গ্রাহক রেটিং এবং পর্যালোচনা
-      * কেন এটি তাদের অনুরোধের সাথে মেলে
-    - ব্যবহারকারীর নির্দিষ্ট প্রশ্নের সাথে সরাসরি প্রাসঙ্গিক তথ্য প্রদান করুন"""
+    গুরুত্বপূর্ণ রিভিউ এবং রেটিং নির্দেশিকা:
+    - শুধুমাত্র তখনই রিভিউ/রেটিং উল্লেখ করুন যখন ব্যবহারকারী স্পষ্টভাবে এগুলি সম্পর্কে জিজ্ঞাসা করে
+    - যদি ব্যবহারকারী রিভিউ চায়, সমস্ত রিভিউ সত্যিভাবে দেখান - ভাল এবং খারাপ উভয়ই
+    - যদি একটি পণ্যের কোন রিভিউ না থাকে, জিজ্ঞাসা করলে বলুন "এখনও কোন রিভিউ নেই"
+    - কেবলমাত্র প্রাসঙ্গিক হলে ইতিবাচক রিভিউ ক্রয় উত্সাহ হিসাবে ব্যবহার করুন, কিন্তু জিজ্ঞাসা না করা পর্যন্ত রেটিং উল্লেখ করবেন না
+    - ব্যবহারকারী বিশেষভাবে না জিজ্ঞাসা করলে রেটিং নম্বর (যেমন ৪.২/৫) স্বয়ংক্রিয়ভাবে অন্তর্ভুক্ত করবেন না
+    - প্রাথমিক তথ্য হিসাবে পণ্যের বৈশিষ্ট্য, মূল্য এবং প্রাপ্যতার উপর ফোকাস করুন"""
     
     @staticmethod
-    def build_prompt(user_query, context, language='english', user_context=None):
-        """Build language-specific prompt"""
+    def build_prompt(user_query, context, language='english', user_context=None, is_asking_for_reviews=False):
+        """Build language-specific prompt with review intent handling"""
         
         if language == 'bengali':
             system_prompt = MultilingualPromptBuilder.BENGALI_SYSTEM_PROMPT
             if context and "No specific product information" not in context:
-                user_content = f"""প্রাসঙ্গিক পণ্য তথ্য:
+                if is_asking_for_reviews:
+                    user_content = f"""প্রাসঙ্গিক পণ্য তথ্য:
+{context}
+
+ব্যবহারকারীর প্রশ্ন: {user_query}
+
+ব্যবহারকারী স্পষ্টভাবে পণ্যের রিভিউ এবং রেটিং সম্পর্কে জানতে চাইছেন। উপরোক্ত তথ্যের উপর ভিত্তি করে একটি সহায়ক প্রতিক্রিয়া প্রদান করুন:
+- সমস্ত রিভিউ এবং রেটিং সত্যিভাবে রিপোর্ট করুন (ভাল এবং খারাপ উভয়ই)
+- যদি কোন রিভিউ না থাকে তবে স্পষ্টভাবে বলুন "এখনও কোন রিভিউ নেই"
+- প্রাকৃতিক, কথোপকথনমূলক বাংলায় লিখুন
+- কোন টেবিল, বোল্ড টেক্সট, বা বিশেষ ফরম্যাটিং ব্যবহার করবেন না
+- রেটিং নম্বর এবং রিভিউ টেক্সট উভয়ই অন্তর্ভুক্ত করুন"""
+                else:
+                    user_content = f"""প্রাসঙ্গিক পণ্য তথ্য:
 {context}
 
 ব্যবহারকারীর প্রশ্ন: {user_query}
@@ -180,8 +225,8 @@ class MultilingualPromptBuilder:
 - প্রাসঙ্গিক পণ্যগুলো উল্লেখ করুন এবং বিস্তারিত জানান
 - প্রাকৃতিক, কথোপকথনমূলক বাংলায় লিখুন
 - কোন টেবিল, বোল্ড টেক্সট, বা বিশেষ ফরম্যাটিং ব্যবহার করবেন না
-- গ্রাহক পর্যালোচনা এবং রেটিং সম্পর্কে তথ্য দিন
-- শুধুমাত্র সরাসরি প্রাসঙ্গিক পণ্য সম্পর্কে কথা বলুন"""
+- রিভিউ বা রেটিং স্বয়ংক্রিয়ভাবে উল্লেখ করবেন না (জিজ্ঞাসা না করা পর্যন্ত)
+- পণ্যের বৈশিষ্ট্য, মূল্য এবং প্রাপ্যতার উপর ফোকাস করুন"""
             else:
                 user_content = f"""ব্যবহারকারীর প্রশ্ন: {user_query}
 
@@ -189,7 +234,20 @@ class MultilingualPromptBuilder:
         else:
             system_prompt = MultilingualPromptBuilder.ENGLISH_SYSTEM_PROMPT
             if context and "No specific product information" not in context:
-                user_content = f"""Relevant Product Information:
+                if is_asking_for_reviews:
+                    user_content = f"""Relevant Product Information:
+{context}
+
+User Question: {user_query}
+
+The user is specifically asking for product reviews and ratings. Please provide a helpful response based on the information above:
+- Report ALL reviews and ratings honestly (both good and bad)
+- If there are no reviews, clearly state "No reviews yet"
+- Write in conversational, plain English only
+- No tables, bold text, or special formatting
+- Include both rating numbers and review text"""
+                else:
+                    user_content = f"""Relevant Product Information:
 {context}
 
 User Question: {user_query}
@@ -199,8 +257,8 @@ Please provide a helpful response based on the information above. Include:
 - Mention relevant products with details in natural sentences
 - Write in conversational, plain English only
 - No tables, bold text, or special formatting
-- Include information about customer reviews and ratings
-- Focus only on directly relevant products"""
+- DO NOT automatically mention reviews or ratings (unless asked)
+- Focus on product features, price, and availability"""
             else:
                 user_content = f"""User Question: {user_query}
 
@@ -231,6 +289,7 @@ class EcommerceAICustomerSupport:
         )
         
         self.language_detector = LanguageDetector()
+        self.review_intent_detector = ReviewIntentDetector()
         self.prompt_builder = MultilingualPromptBuilder()
         
         # Initialize embeddings
@@ -287,7 +346,7 @@ class EcommerceAICustomerSupport:
         return response
 
     def setup_pinecone(self):
-        if hasattr(self, 'index') and self.index is not None:
+        if hasattr(self, 'index') and self.index is None:
             logger.info("✅ Pinecone already initialized, skipping setup")
             return True
         
@@ -419,8 +478,8 @@ class EcommerceAICustomerSupport:
         
         return products
 
-    def get_product_recommendations_with_reviews(self, keyword, limit=5):
-        """Search for products and include their reviews for recommendations"""
+    def get_product_recommendations_with_reviews(self, keyword, limit=5, include_reviews=False):
+        """Search for products and optionally include their reviews"""
         connection = self.get_db_connection()
         recommendations = []
         
@@ -443,29 +502,31 @@ class EcommerceAICustomerSupport:
                 for row in raw_results:
                     product_uid_str = str(uuid.UUID(bytes=row['uid'])) if isinstance(row['uid'], bytes) else str(row['uid'])
                     
-                    # Get top 3 reviews for this product
-                    reviews_query = """
-                        SELECT rating, review_text, user_name
-                        FROM ProductReview 
-                        WHERE product_uid = %s
-                        ORDER BY rating DESC, created_at DESC
-                        LIMIT 3
-                    """
-                    cursor.execute(reviews_query, (row['uid'],))
-                    reviews = cursor.fetchall()
+                    # Only get reviews if specifically requested
+                    clean_reviews = []
+                    if include_reviews:
+                        # Get top 3 reviews for this product
+                        reviews_query = """
+                            SELECT rating, review_text, user_name
+                            FROM ProductReview 
+                            WHERE product_uid = %s
+                            ORDER BY rating DESC, created_at DESC
+                            LIMIT 3
+                        """
+                        cursor.execute(reviews_query, (row['uid'],))
+                        reviews = cursor.fetchall()
+                        
+                        # Clean and format reviews
+                        for r in reviews:
+                            clean_review_text = clean_html(r['review_text'])
+                            clean_reviews.append({
+                                'rating': r['rating'],
+                                'text': clean_review_text[:100],
+                                'reviewer': r['user_name']
+                            })
                     
                     # Clean the description
                     clean_description = extract_clean_text(row['description'], 150)
-                    
-                    # Clean and format reviews
-                    clean_reviews = []
-                    for r in reviews:
-                        clean_review_text = clean_html(r['review_text'])
-                        clean_reviews.append({
-                            'rating': r['rating'],
-                            'text': clean_review_text[:100],
-                            'reviewer': r['user_name']
-                        })
                     
                     recommendations.append({
                         'product_id': product_uid_str,
@@ -487,54 +548,7 @@ class EcommerceAICustomerSupport:
         
         return recommendations
 
-    def get_product_reviews_from_db(self, product_name):
-        """Get all reviews for a specific product by name"""
-        connection = self.get_db_connection()
-        reviews = []
-        
-        try:
-            with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-                # First find the product by name
-                product_query = """
-                    SELECT uid FROM Products WHERE name LIKE %s LIMIT 1
-                """
-                cursor.execute(product_query, (f"%{product_name}%",))
-                product = cursor.fetchone()
-                
-                if product:
-                    product_uid = product['uid']
-                    
-                    # Get all reviews for this product
-                    reviews_query = """
-                        SELECT rating, review_text, user_name, created_at
-                        FROM ProductReview 
-                        WHERE product_uid = %s
-                        ORDER BY rating DESC, created_at DESC
-                    """
-                    cursor.execute(reviews_query, (product_uid,))
-                    raw_reviews = cursor.fetchall()
-                    
-                    for review in raw_reviews:
-                        clean_review = clean_html(review['review_text'])
-                        reviews.append({
-                            'rating': review['rating'],
-                            'text': clean_review,
-                            'reviewer': review['user_name'],
-                            'date': str(review['created_at'])[:10] if review['created_at'] else 'Unknown date'
-                        })
-                    
-                    print(f"✅ Found {len(reviews)} reviews for product: {product_name}")
-                else:
-                    print(f"❌ Product not found: {product_name}")
-                    
-        except Exception as e:
-            print(f"❌ Error getting product reviews: {e}")
-        finally:
-            connection.close()
-        
-        return reviews
-
-    def format_pinecone_context(self, pinecone_docs):
+    def format_pinecone_context(self, pinecone_docs, include_reviews=False):
         """Format Pinecone documents into readable context"""
         if not pinecone_docs:
             return ""
@@ -553,9 +567,11 @@ class EcommerceAICustomerSupport:
             if discount and discount > 0:
                 context += f"Discount: {discount}%\n"
             
-            avg_rating = metadata.get('average_rating', 0)
-            review_count = metadata.get('review_count', 0)
-            context += f"Rating: {avg_rating}/5 ({review_count} reviews)\n"
+            # Only include ratings if reviews are requested or for internal use
+            if include_reviews:
+                avg_rating = metadata.get('average_rating', 0)
+                review_count = metadata.get('review_count', 0)
+                context += f"Rating: {avg_rating}/5 ({review_count} reviews)\n"
             
             # Add tags if available
             tags = metadata.get('tags', [])
@@ -585,8 +601,11 @@ class EcommerceAICustomerSupport:
                 chat_id = self.generate_chat_id(user_id)
         
             detected_language = self.language_detector.detect_language(user_query)
+            is_asking_for_reviews = self.review_intent_detector.is_asking_for_reviews(user_query)
+            
             logger.info(f"💬 Chat ID: {chat_id} | User: {user_id or 'guest'} | Language: {detected_language}")
             logger.info(f"📝 Query: {user_query}")
+            logger.info(f"🔍 Review intent detected: {is_asking_for_reviews}")
         
             context = ""
             pinecone_docs = []
@@ -599,7 +618,8 @@ class EcommerceAICustomerSupport:
                 
                 if pinecone_docs:
                     logger.info(f"✅ Found {len(pinecone_docs)} relevant products in Pinecone")
-                    context = self.format_pinecone_context(pinecone_docs)
+                    # Pass review intent to format context appropriately
+                    context = self.format_pinecone_context(pinecone_docs, include_reviews=is_asking_for_reviews)
                 else:
                     logger.info("❌ No products found in Pinecone")
                     context = "No specific product information found in our database."
@@ -611,7 +631,12 @@ class EcommerceAICustomerSupport:
                 search_keywords = [w for w in words if len(w) > 2]
                 
                 for keyword in search_keywords:
-                    recommendations = self.get_product_recommendations_with_reviews(keyword, limit=3)
+                    # Only include reviews if specifically requested
+                    recommendations = self.get_product_recommendations_with_reviews(
+                        keyword, 
+                        limit=3, 
+                        include_reviews=is_asking_for_reviews
+                    )
                     if recommendations:
                         logger.info(f"✅ Found {len(recommendations)} products in database")
                         context = "Available Products:\n\n"
@@ -620,14 +645,23 @@ class EcommerceAICustomerSupport:
                             context += f"Brand: {product['brand']}\n"
                             context += f"Price: {product['price']} BDT\n"
                             context += f"Category: {product['category']}\n"
-                            context += f"Rating: {product['average_rating']}/5 ({product['total_reviews']} reviews)\n"
+                            
+                            # Only include rating information if reviews are requested
+                            if is_asking_for_reviews:
+                                context += f"Rating: {product['average_rating']}/5 ({product['total_reviews']} reviews)\n"
+                                if product['top_reviews']:
+                                    context += "Top Reviews:\n"
+                                    for review in product['top_reviews']:
+                                        context += f"- {review['rating']}/5: {review['text']} (by {review['reviewer']})\n"
+                            
                             context += f"Description: {product['description']}\n\n"
                         break
         
             system_message, user_content = self.prompt_builder.build_prompt(
                 user_query=user_query,
                 context=context,
-                language=detected_language
+                language=detected_language,
+                is_asking_for_reviews=is_asking_for_reviews
             )
         
             logger.info("🤖 Calling Groq API...")
@@ -650,7 +684,8 @@ class EcommerceAICustomerSupport:
                 "user": user_query,
                 "assistant": clean_response,
                 "language": detected_language,
-                "timestamp": str(datetime.now())
+                "timestamp": str(datetime.now()),
+                "review_intent": is_asking_for_reviews
             })
         
             # Keep only last 50 messages
@@ -663,7 +698,8 @@ class EcommerceAICustomerSupport:
                 "conversation_history": self.conversation_history,
                 "language": detected_language,
                 "chat_id": chat_id,
-                "product_context": tracked_products
+                "product_context": tracked_products,
+                "review_intent_detected": is_asking_for_reviews
             }
         
         except Exception as e:
@@ -680,7 +716,8 @@ class EcommerceAICustomerSupport:
                 "conversation_history": self.conversation_history,
                 "language": detected_language,
                 "chat_id": chat_id or "error",
-                "product_context": product_context or {}
+                "product_context": product_context or {},
+                "review_intent_detected": False
             }
 
     def get_user_context(self, user_id=None):
@@ -768,6 +805,7 @@ class ChatResponse(BaseModel):
     response: str
     sources: list
     success: bool = True
+    review_intent_detected: bool = False
 
 # Initialize AI support system
 ai_support = EcommerceAICustomerSupport()
@@ -798,14 +836,16 @@ async def chat_with_ai(request: ChatRequest):
         return ChatResponse(
             response=result["answer"],
             sources=sources,
-            success=True
+            success=True,
+            review_intent_detected=result.get("review_intent_detected", False)
         )
     
     except Exception as e:
         return ChatResponse(
             response="Sorry, I encountered an error. Please try again.",
             sources=[],
-            success=False
+            success=False,
+            review_intent_detected=False
         )
 
 @app.get("/health")
@@ -819,5 +859,13 @@ async def health_check():
     }
 
 if __name__ == "__main__":
+    optimize_memory()
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    port = int(os.getenv("PORT", 8001))
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port,
+        workers=1,  # Single worker for free tier
+        log_level="info"
+    )

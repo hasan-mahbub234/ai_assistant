@@ -1,0 +1,9 @@
+[deploy]
+numReplicas = 1
+
+[build]
+builder = "nixpacks"
+
+[[services]]
+name = "ai-customer-support"
+port = 8001
