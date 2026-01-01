@@ -1,0 +1,1420 @@
+select pg_catalog.version()
+[raw sql] {}
+select current_schema()
+[raw sql] {}
+show standard_conforming_strings
+[raw sql] {}
+BEGIN (implicit)
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00069s] {'table_name': 'users', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.04677s ago] {'table_name': 'refresh_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.04922s ago] {'table_name': 'api_keys', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05156s ago] {'table_name': 'password_reset_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05386s ago] {'table_name': 'documents', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05626s ago] {'table_name': 'document_embeddings', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.1101s ago] {'table_name': 'chat_history', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.1147s ago] {'table_name': 'document_shares', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00453s] {'typname_1': 'user_role', 'nspname_1': 'pg_catalog'}
+CREATE TYPE user_role AS ENUM ('SUPER_ADMIN', 'ADMIN', 'LAWYER', 'PARALEGAL', 'CLIENT')
+[no key 0.00479s] {}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05544s ago] {'typname_1': 'user_status', 'nspname_1': 'pg_catalog'}
+CREATE TYPE user_status AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING')
+[no key 0.00122s] {}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.06318s ago] {'typname_1': 'documentstatus', 'nspname_1': 'pg_catalog'}
+CREATE TYPE documentstatus AS ENUM ('PENDING', 'PROCESSING', 'PROCESSED', 'FAILED')
+[no key 0.00056s] {}
+
+CREATE TABLE refresh_tokens (
+	id SERIAL NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	token VARCHAR(500) NOT NULL, 
+	expires_at TIMESTAMP WITH TIME ZONE NOT NULL, 
+	is_revoked BOOLEAN, 
+	revoked_at TIMESTAMP WITH TIME ZONE, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+	user_agent TEXT, 
+	ip_address VARCHAR(45), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	UNIQUE (token)
+)
+
+
+[no key 0.00234s] {}
+CREATE INDEX ix_refresh_tokens_id ON refresh_tokens (id)
+[no key 0.00079s] {}
+CREATE INDEX ix_refresh_tokens_user_id ON refresh_tokens (user_id)
+[no key 0.00149s] {}
+CREATE INDEX ix_refresh_tokens_token ON refresh_tokens (token)
+[no key 0.00054s] {}
+
+CREATE TABLE api_keys (
+	id SERIAL NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	name VARCHAR(100) NOT NULL, 
+	key_hash VARCHAR(64) NOT NULL, 
+	last_used_at TIMESTAMP WITH TIME ZONE, 
+	expires_at TIMESTAMP WITH TIME ZONE, 
+	is_active BOOLEAN, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+	scopes TEXT NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	UNIQUE (key_hash)
+)
+
+
+[no key 0.00637s] {}
+CREATE INDEX ix_api_keys_key_hash ON api_keys (key_hash)
+[no key 0.00324s] {}
+CREATE INDEX ix_api_keys_id ON api_keys (id)
+[no key 0.00175s] {}
+CREATE INDEX ix_api_keys_user_id ON api_keys (user_id)
+[no key 0.00468s] {}
+
+CREATE TABLE password_reset_tokens (
+	id SERIAL NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	token VARCHAR(64) NOT NULL, 
+	expires_at TIMESTAMP WITH TIME ZONE NOT NULL, 
+	is_used BOOLEAN, 
+	used_at TIMESTAMP WITH TIME ZONE, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	UNIQUE (token)
+)
+
+
+[no key 0.09731s] {}
+CREATE INDEX ix_password_reset_tokens_token ON password_reset_tokens (token)
+[no key 0.00196s] {}
+CREATE INDEX ix_password_reset_tokens_user_id ON password_reset_tokens (user_id)
+[no key 0.00159s] {}
+CREATE INDEX ix_password_reset_tokens_id ON password_reset_tokens (id)
+[no key 0.00070s] {}
+
+CREATE TABLE documents (
+	id SERIAL NOT NULL, 
+	filename VARCHAR(255) NOT NULL, 
+	original_filename VARCHAR(255) NOT NULL, 
+	file_path VARCHAR(500) NOT NULL, 
+	file_type VARCHAR(50) NOT NULL, 
+	file_size INTEGER NOT NULL, 
+	mime_type VARCHAR(100), 
+	extracted_text TEXT, 
+	summary TEXT, 
+	document_metadata JSON, 
+	status documentstatus NOT NULL, 
+	processing_started_at TIMESTAMP WITH TIME ZONE, 
+	processing_completed_at TIMESTAMP WITH TIME ZONE, 
+	processing_error TEXT, 
+	ai_analysis JSON, 
+	is_encrypted BOOLEAN, 
+	encryption_key VARCHAR(255), 
+	user_id INTEGER NOT NULL, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+	updated_at TIMESTAMP WITH TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+[no key 0.00047s] {}
+CREATE INDEX ix_documents_id ON documents (id)
+[no key 0.00046s] {}
+CREATE INDEX ix_documents_original_filename ON documents (original_filename)
+[no key 0.00048s] {}
+CREATE INDEX ix_documents_user_id_status ON documents (user_id, status)
+[no key 0.00316s] {}
+CREATE INDEX ix_documents_created_at ON documents (created_at)
+[no key 0.00119s] {}
+
+CREATE TABLE document_embeddings (
+	id SERIAL NOT NULL, 
+	document_id INTEGER NOT NULL, 
+	pinecone_id VARCHAR(255) NOT NULL, 
+	chunk_index INTEGER NOT NULL, 
+	chunk_text TEXT NOT NULL, 
+	chunk_start INTEGER NOT NULL, 
+	chunk_end INTEGER NOT NULL, 
+	embedding_model VARCHAR(100) NOT NULL, 
+	embedding_dimension INTEGER NOT NULL, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(document_id) REFERENCES documents (id) ON DELETE CASCADE
+)
+
+
+[no key 0.00053s] {}
+CREATE INDEX ix_document_embeddings_pinecone_id ON document_embeddings (pinecone_id)
+[no key 0.00049s] {}
+CREATE INDEX ix_document_embeddings_chunk_index ON document_embeddings (chunk_index)
+[no key 0.00079s] {}
+CREATE INDEX ix_document_embeddings_document_id ON document_embeddings (document_id)
+[no key 0.00055s] {}
+CREATE INDEX ix_document_embeddings_id ON document_embeddings (id)
+[no key 0.00052s] {}
+
+CREATE TABLE chat_history (
+	id SERIAL NOT NULL, 
+	document_id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	question TEXT NOT NULL, 
+	answer TEXT NOT NULL, 
+	model_used VARCHAR(100), 
+	temperature FLOAT, 
+	context_chunks JSON, 
+	response_time_ms INTEGER, 
+	token_count INTEGER, 
+	is_helpful BOOLEAN, 
+	user_feedback TEXT, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(document_id) REFERENCES documents (id) ON DELETE CASCADE, 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+[no key 0.00170s] {}
+CREATE INDEX ix_chat_history_created_at ON chat_history (created_at)
+[no key 0.00131s] {}
+CREATE INDEX ix_chat_history_document_id_user_id ON chat_history (document_id, user_id)
+[no key 0.00057s] {}
+CREATE INDEX ix_chat_history_id ON chat_history (id)
+[no key 0.00170s] {}
+
+CREATE TABLE document_shares (
+	id SERIAL NOT NULL, 
+	document_id INTEGER NOT NULL, 
+	shared_by_user_id INTEGER NOT NULL, 
+	shared_with_user_id INTEGER NOT NULL, 
+	can_view BOOLEAN, 
+	can_edit BOOLEAN, 
+	can_delete BOOLEAN, 
+	can_share BOOLEAN, 
+	expires_at TIMESTAMP WITH TIME ZONE, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now(), 
+	updated_at TIMESTAMP WITH TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(document_id) REFERENCES documents (id) ON DELETE CASCADE, 
+	FOREIGN KEY(shared_by_user_id) REFERENCES users (id) ON DELETE CASCADE, 
+	FOREIGN KEY(shared_with_user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+[no key 0.00052s] {}
+CREATE INDEX ix_document_shares_shared_with_user_id ON document_shares (shared_with_user_id)
+[no key 0.00110s] {}
+CREATE INDEX ix_document_shares_id ON document_shares (id)
+[no key 0.00051s] {}
+CREATE INDEX ix_document_shares_shared_by_user_id ON document_shares (shared_by_user_id)
+[no key 0.00051s] {}
+CREATE INDEX ix_document_shares_expires_at ON document_shares (expires_at)
+[no key 0.00407s] {}
+CREATE INDEX ix_document_shares_document_id ON document_shares (document_id)
+[no key 0.00047s] {}
+COMMIT
+Will watch for changes in these directories: ['F:\\Projects\\legal_saas\\backend']
+Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Started reloader process [16016] using WatchFiles
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+select pg_catalog.version()
+[raw sql] {}
+select current_schema()
+[raw sql] {}
+show standard_conforming_strings
+[raw sql] {}
+BEGIN (implicit)
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00065s] {'table_name': 'users', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01109s ago] {'table_name': 'refresh_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02061s ago] {'table_name': 'api_keys', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02355s ago] {'table_name': 'password_reset_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02585s ago] {'table_name': 'documents', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02784s ago] {'table_name': 'document_embeddings', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.03102s ago] {'table_name': 'chat_history', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.03348s ago] {'table_name': 'document_shares', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00050s] {'typname_1': 'user_role', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.003882s ago] {'typname_1': 'user_status', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.007645s ago] {'typname_1': 'documentstatus', 'nspname_1': 'pg_catalog'}
+COMMIT
+Started server process [4764]
+Waiting for application startup.
+Application startup complete.
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+    ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 2050, in _run_once
+    handle._run()
+    ~~~~~~~~~~~^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Projects\legal_saas\backend\venv\Lib\site-packages\uvicorn\server.py", line 70, in serve
+    with self.capture_signals():
+         ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 148, in __exit__
+    next(self.gen)
+    ~~~~^^^^^^^^^^
+  File "F:\Projects\legal_saas\backend\venv\Lib\site-packages\uvicorn\server.py", line 331, in capture_signals
+    signal.raise_signal(captured_signal)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 157, in _on_sigint
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "F:\Projects\legal_saas\backend\venv\Lib\site-packages\starlette\routing.py", line 701, in lifespan
+    await receive()
+  File "F:\Projects\legal_saas\backend\venv\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\queues.py", line 186, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Stopping reloader process [16016]
+select pg_catalog.version()
+[raw sql] {}
+select current_schema()
+[raw sql] {}
+show standard_conforming_strings
+[raw sql] {}
+BEGIN (implicit)
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00102s] {'table_name': 'users', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.0511s ago] {'table_name': 'refresh_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05332s ago] {'table_name': 'api_keys', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05574s ago] {'table_name': 'password_reset_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05787s ago] {'table_name': 'documents', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.06006s ago] {'table_name': 'document_embeddings', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.06242s ago] {'table_name': 'chat_history', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.06492s ago] {'table_name': 'document_shares', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00062s] {'typname_1': 'user_role', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.003256s ago] {'typname_1': 'user_status', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.00786s ago] {'typname_1': 'documentstatus', 'nspname_1': 'pg_catalog'}
+COMMIT
+Will watch for changes in these directories: ['F:\\Projects\\legal_saas\\backend']
+Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Started reloader process [14060] using WatchFiles
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+select pg_catalog.version()
+[raw sql] {}
+select current_schema()
+1 change detected
+[raw sql] {}
+show standard_conforming_strings
+[raw sql] {}
+BEGIN (implicit)
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00241s] {'table_name': 'users', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01555s ago] {'table_name': 'refresh_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01797s ago] {'table_name': 'api_keys', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02088s ago] {'table_name': 'password_reset_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02331s ago] {'table_name': 'documents', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.03847s ago] {'table_name': 'document_embeddings', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.04623s ago] {'table_name': 'chat_history', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05361s ago] {'table_name': 'document_shares', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.01529s] {'typname_1': 'user_role', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02709s ago] {'typname_1': 'user_status', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.04191s ago] {'typname_1': 'documentstatus', 'nspname_1': 'pg_catalog'}
+COMMIT
+Started server process [612]
+Waiting for application startup.
+Application startup complete.
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+1 change detected
+Response
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Request
+Response
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Shutting down
+Waiting for application shutdown.
+Application shutdown complete.
+Finished server process [612]
+Stopping reloader process [14060]
+Will watch for changes in these directories: ['F:\\Projects\\legal_saas\\backend']
+Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Started reloader process [6212] using WatchFiles
+Started server process [12784]
+Waiting for application startup.
+select pg_catalog.version()
+[raw sql] {}
+select current_schema()
+[raw sql] {}
+show standard_conforming_strings
+[raw sql] {}
+BEGIN (implicit)
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00401s] {'table_name': 'users', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05557s ago] {'table_name': 'refresh_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05813s ago] {'table_name': 'api_keys', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.06071s ago] {'table_name': 'password_reset_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.06247s ago] {'table_name': 'documents', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.06559s ago] {'table_name': 'document_embeddings', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.07275s ago] {'table_name': 'chat_history', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.07623s ago] {'table_name': 'document_shares', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00075s] {'typname_1': 'user_role', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.005058s ago] {'typname_1': 'user_status', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01036s ago] {'typname_1': 'documentstatus', 'nspname_1': 'pg_catalog'}
+COMMIT
+Application startup complete.
+Request
+Response
+Request
+Response
+Request
+Response
+Request
+Response
+Request
+Response
+Request
+Response
+1 change detected
+WatchFiles detected changes in 'src\main.py'. Reloading...
+Shutting down
+Waiting for application shutdown.
+Application shutdown complete.
+Finished server process [12784]
+2 changes detected
+WatchFiles detected changes in 'src\main.py'. Reloading...
+5 changes detected
+select pg_catalog.version()
+[raw sql] {}
+select current_schema()
+[raw sql] {}
+show standard_conforming_strings
+[raw sql] {}
+BEGIN (implicit)
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00885s] {'table_name': 'users', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02965s ago] {'table_name': 'refresh_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.03272s ago] {'table_name': 'api_keys', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.03552s ago] {'table_name': 'password_reset_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.04801s ago] {'table_name': 'documents', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.05115s ago] {'table_name': 'document_embeddings', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.0624s ago] {'table_name': 'chat_history', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.0671s ago] {'table_name': 'document_shares', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00207s] {'typname_1': 'user_role', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01043s ago] {'typname_1': 'user_status', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02119s ago] {'typname_1': 'documentstatus', 'nspname_1': 'pg_catalog'}
+COMMIT
+Started server process [5656]
+Waiting for application startup.
+Application startup complete.
+Request
+Response
+Request
+Response
+Request
+Response
+Request
+Response
+Request
+Response
+1 change detected
+WatchFiles detected changes in 'src\main.py'. Reloading...
+Shutting down
+Waiting for application shutdown.
+Application shutdown complete.
+Finished server process [5656]
+1 change detected
+5 changes detected
+select pg_catalog.version()
+[raw sql] {}
+select current_schema()
+[raw sql] {}
+show standard_conforming_strings
+[raw sql] {}
+BEGIN (implicit)
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00100s] {'table_name': 'users', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.00898s ago] {'table_name': 'refresh_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01189s ago] {'table_name': 'api_keys', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01486s ago] {'table_name': 'password_reset_tokens', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01744s ago] {'table_name': 'documents', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.01981s ago] {'table_name': 'document_embeddings', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02242s ago] {'table_name': 'chat_history', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = %(table_name)s AND pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.02574s ago] {'table_name': 'document_shares', 'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[generated in 0.00340s] {'typname_1': 'user_role', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.007056s ago] {'typname_1': 'user_status', 'nspname_1': 'pg_catalog'}
+SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = %(typname_1)s AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+[cached since 0.009775s ago] {'typname_1': 'documentstatus', 'nspname_1': 'pg_catalog'}
+COMMIT
+Started server process [12988]
+Waiting for application startup.
+Application startup complete.
+Request
+Request
+Request
+Response
+Response
+Response
+1 change detected
+WatchFiles detected changes in 'src\main.py'. Reloading...
+Shutting down
+Waiting for application shutdown.
+Application shutdown complete.
+Finished server process [12988]
+1 change detected
