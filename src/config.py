@@ -1,27 +1,44 @@
-# config.py
 from pydantic_settings import BaseSettings
-import os
+from typing import Optional
+
 
 class Settings(BaseSettings):
-    # MySQL Database configuration
-    DB_HOST: str 
-    DB_PORT: int 
-    DB_NAME: str 
-    DB_USER: str 
-    DB_PASSWORD: str 
+    # Database
+    DB_HOST: str
+    DB_PORT: int = 3306
+    DB_NAME: str
+    DB_USER: str
+    DB_PASSWORD: str
     
-    # AI Service APIs
-    GROQ_API_KEY: str
+    # Pinecone
     PINECONE_API_KEY: str
-    PINECONE_ENVIRONMENT: str 
-    PINECONE_INDEX_NAME: str 
+    PINECONE_INDEX_NAME: str = "ecommerce-customer-support"
+    PINECONE_ENVIRONMENT: Optional[str] = "us-east-1"
     
-    # Optional: Hugging Face
-    HF_API_TOKEN: str 
+    # Groq
+    GROQ_API_KEY: str
+    
+    # Hugging Face (optional)
+    HF_API_TOKEN: Optional[str] = None
+    
+    # Gemini (optional)
+    GEMINI_API_KEY: Optional[str] = None
+    
+    # Embeddings
+    EMBEDDING_MODEL: str = "sentence-transformers/all-mpnet-base-v2"
+    EMBED_DIMENSION: int = 768
+    
+    # App
+    LOG_LEVEL: str = "INFO"
+    PORT: int = 8000
+    
+    # Vectorization
+    PINECONE_BATCH_SIZE: int = 50
+    UPSERT_SLEEP: float = 0.15
     
     class Config:
         env_file = ".env"
-        case_sensitive = False
+        extra = "ignore"  # This will ignore any extra fields in .env
 
-# Global configuration
+
 config = Settings()

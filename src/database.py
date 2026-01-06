@@ -1,34 +1,34 @@
 import pymysql
-from src.config import config
+from pymysql.cursors import DictCursor
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-def get_db_connection():
-    """Create database connection for Vercel AI service"""
-    try:
-        connection = pymysql.connect(
-            host=config.DB_HOST,
-            database=config.DB_NAME,
-            user=config.DB_USER,
-            password=config.DB_PASSWORD,
-            port=config.DB_PORT,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor,
-            connect_timeout=10,
-            read_timeout=30,
-            write_timeout=30
-        )
-        
-        logger.info("✅ Successfully connected to MySQL database from Vercel")
-        return connection
-        
-    except Exception as e:
-        logger.error(f"❌ Error connecting to MySQL database: {e}")
-        raise
 
-def close_db_connection(connection):
-    """Close database connection"""
-    if connection and connection.open:
-        connection.close()
-        logger.info("🔌 MySQL connection closed")
+class DatabaseConnection:
+    """Database connection manager"""
+    
+    def get_connection(self):
+        """Create and return database connection"""
+        try:
+            return pymysql.connect(
+                host=os.getenv("DB_HOST", "localhost"),
+                port=int(os.getenv("DB_PORT", 3306)),
+                database=os.getenv("DB_NAME", ""),
+                user=os.getenv("DB_USER", ""),
+                password=os.getenv("DB_PASSWORD", ""),
+                charset='utf8mb4',
+                cursorclass=DictCursor,
+                autocommit=True
+            )
+        except Exception as e:
+            logger.error(f"Database connection error: {e}")
+            raise
+
+
+# Create global instance
+db = DatabaseConnection()

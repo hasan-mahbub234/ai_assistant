@@ -1,0 +1,82 @@
+# docker-compose.yml
+version: "3.9"
+
+services:
+  # Main AI Assistant Application
+  ai-assistant:
+    build: .
+    container_name: ecommerce-ai-assistant
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=INFO
+      - PORT=8000
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - ai-network
+
+  # MySQL Database (if you want to include it)
+  mysql:
+    image: mysql:8.0
+    container_name: ecommerce-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - ai-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Vectorization Worker (separate service)
+  vectorizer:
+    build: .
+    container_name: ecommerce-vectorizer
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - LOG_LEVEL=INFO
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    command: >
+      sh -c "echo 'Waiting for MySQL...' &&
+             sleep 30 &&
+             python src/vectorize_database.py --limit 100"
+    restart: "no"
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:

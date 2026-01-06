@@ -1,266 +1,170 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
-from .ai import EcommerceAICustomerSupport
 import logging
+from src.ai.ai_service import AIService
+from src.ai.chat_handler import ChatHandler
 
 logger = logging.getLogger(__name__)
 
 ai_router = APIRouter()
+ai_service = AIService()
+chat_handler = ChatHandler()
 
-ai_support = EcommerceAICustomerSupport()
 
-conversation_store = {}
-
+# Request/Response models
 class ChatRequest(BaseModel):
     message: str
     user_id: Optional[int] = None
     conversation_id: Optional[str] = None
 
-class OrderTrackingRequest(BaseModel):
-    order_id: str
-    user_id: Optional[str] = None
+class ChatResponse(BaseModel):
+    answer: str
+    language: str
+    conversation_id: str
+    success: bool = True
+    products: List[dict] = []
 
-class ProductSuggestionRequest(BaseModel):
+class ProductRequest(BaseModel):
     search_query: str
     limit: Optional[int] = 5
 
-class SourceDocument(BaseModel):
-    content: str
-    metadata: dict
-
-class ChatResponse(BaseModel):
-    response: str
-    sources: List[SourceDocument]
-    language: str
-    chat_id: str
-    user_type: str  # Added user_type field
-    conversation_history: Optional[List[dict]] = None
-    success: bool = True
-
-class OrderTrackingResponse(BaseModel):
+class OrderRequest(BaseModel):
     order_id: str
-    customer_name: str
-    status: str
-    total_amount: int
-    payment_status: str
-    address: str
-    order_date: str
-    products: List[dict]
-    success: bool = True
 
-class ProductRecommendation(BaseModel):
-    product_id: str
-    name: str
-    brand: str
-    price: int
-    average_rating: float
-    total_reviews: int
-    top_reviews: List[dict]
 
-class ProductSuggestionResponse(BaseModel):
-    recommendations: List[ProductRecommendation]
-    success: bool = True
+@ai_router.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """Chat endpoint with AI"""
+    try:
+        logger.info(f"Chat request: {request.message[:100]}")
+        
+        # Get AI response
+        result = ai_service.get_response(
+            user_query=request.message,
+            user_id=request.user_id,
+            conversation_id=request.conversation_id
+        )
+        
+        # Store in chat handler
+        if request.conversation_id:
+            chat_handler.add_message(
+                request.conversation_id,
+                "user",
+                request.message
+            )
+            chat_handler.add_message(
+                request.conversation_id,
+                "assistant",
+                result['answer']
+            )
+            chat_handler.update_product_context(
+                request.conversation_id,
+                result.get('products', [])
+            )
+        
+        return ChatResponse(**result)
+        
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing chat request: {str(e)}"
+        )
 
-@ai_router.get("/conversation/{chat_id}")
-async def get_conversation_history(chat_id: str):
-    """Retrieve full conversation history by chat_id"""
-    if chat_id not in conversation_store:
-        return {
-            "success": False,
-            "error": "Conversation not found",
-            "chat_id": chat_id
-        }
+
+@ai_router.get("/conversation/{conversation_id}")
+async def get_conversation(conversation_id: str):
+    """Get conversation history"""
+    conversation = chat_handler.get_conversation(conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
     
     return {
         "success": True,
-        "chat_id": chat_id,
-        "messages": conversation_store[chat_id].get("messages", []),
-        "user_id": conversation_store[chat_id].get("user_id"),
-        "user_type": conversation_store[chat_id].get("user_type"),
-        "created_at": conversation_store[chat_id].get("created_at"),
-        "product_context": conversation_store[chat_id].get("product_context")  # Return product context
+        "conversation": conversation
     }
 
-@ai_router.post("/chat", response_model=ChatResponse)
-async def chat_with_ai(request: ChatRequest):
-    """Chat endpoint with multilingual support and conversation tracking"""
+
+@ai_router.post("/products/search")
+async def search_products(request: ProductRequest):
+    """Search for products"""
     try:
-        logger.info(f"[v0] Chat request: message='{request.message[:50]}...' user_id={request.user_id} conversation_id={request.conversation_id}")
-        
-        if request.conversation_id and request.conversation_id in conversation_store:
-            # Existing conversation
-            chat_id = request.conversation_id
-            user_type = conversation_store[chat_id].get("user_type")
-            logger.info(f"[v0] Continuing existing conversation: {chat_id} ({user_type})")
-        else:
-            # New conversation
-            if request.user_id and request.user_id > 0:
-                chat_id = ai_support.generate_chat_id(request.user_id)
-                user_type = "authenticated_user"
-                logger.info(f"[v0] New authenticated conversation: {chat_id} for user_id={request.user_id}")
-            else:
-                chat_id = ai_support.generate_chat_id(None)
-                user_type = "guest_user"
-                logger.info(f"[v0] New guest conversation: {chat_id}")
-        
-        if chat_id not in conversation_store:
-            conversation_store[chat_id] = {
-                "user_id": request.user_id,
-                "user_type": user_type,
-                "messages": [],
-                "product_context": {},  # Track mentioned products
-                "created_at": str(__import__('datetime').datetime.now()),
-                "updated_at": str(__import__('datetime').datetime.now())
-            }
-        
-        # Get user context
-        user_context = ai_support.get_user_context(request.user_id)
-        
-        product_context = conversation_store[chat_id].get("product_context", {})
-        
-        result = ai_support.get_customer_response(
-            user_query=request.message,
-            user_context=user_context,
-            user_id=request.user_id,
-            chat_id=chat_id,
-            conversation_history=conversation_store[chat_id]["messages"],
-            product_context=product_context
+        recommendations = ai_service.get_product_recommendations(
+            keyword=request.search_query,
+            limit=request.limit
         )
         
-        logger.info(f"[v0] AI Response generated. Language: {result.get('language')}")
+        return {
+            "success": True,
+            "query": request.search_query,
+            "count": len(recommendations),
+            "products": recommendations
+        }
         
-        conversation_store[chat_id]["messages"].append({
-            "role": "user",
-            "content": request.message,
-            "timestamp": str(__import__('datetime').datetime.now())
-        })
-        
-        conversation_store[chat_id]["messages"].append({
-            "role": "assistant",
-            "content": result["answer"],
-            "timestamp": str(__import__('datetime').datetime.now())
-        })
-        
-        if result.get("product_context"):
-            conversation_store[chat_id]["product_context"].update(result.get("product_context"))
-        
-        conversation_store[chat_id]["updated_at"] = str(__import__('datetime').datetime.now())
-        
-        # Extract source information
-        sources = []
-        for doc in result["source_documents"]:
-            sources.append({
-                "content": doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content,
-                "metadata": doc.metadata
-            })
-        
-        return ChatResponse(
-            response=result["answer"],
-            sources=sources,
-            language=result["language"],
-            chat_id=chat_id,
-            user_type=user_type,
-            conversation_history=conversation_store[chat_id]["messages"],
-            success=True
-        )
-    
     except Exception as e:
-        logger.error(f"[v0] Chat error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        
-        chat_id = request.conversation_id or ai_support.generate_chat_id(request.user_id)
-        user_type = "guest_user" if not request.user_id else "authenticated_user"
-        
-        return ChatResponse(
-            response="Sorry, I encountered an error. Please try again.",
-            sources=[],
-            language="english",
-            chat_id=chat_id,
-            user_type=user_type,
-            success=False
+        logger.error(f"Product search error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error searching products: {str(e)}"
         )
 
-@ai_router.post("/track-order")
-async def track_order(request: OrderTrackingRequest):
-    """Get order tracking information for a specific order"""
+
+@ai_router.post("/order/track")
+async def track_order(request: OrderRequest):
+    """Track order status"""
     try:
-        print(f"[v0] Order tracking request for order: {request.order_id}")
-        
-        order_info = ai_support.get_order_tracking_info(request.order_id)
+        order_info = ai_service.track_order(request.order_id)
         
         if not order_info:
-            return {
-                "success": False,
-                "error": "Order not found",
-                "order_id": request.order_id
-            }
+            raise HTTPException(status_code=404, detail="Order not found")
         
         return {
-            **order_info,
-            "success": True
+            "success": True,
+            "order": order_info
         }
-    
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"[v0] Order tracking error: {str(e)}")
-        return {
-            "success": False,
-            "error": f"Error tracking order: {str(e)}",
-            "order_id": request.order_id
-        }
-
-@ai_router.post("/product-suggestions")
-async def get_product_suggestions(request: ProductSuggestionRequest):
-    """Get product recommendations with reviews based on search query"""
-    try:
-        print(f"[v0] Product suggestion request for: {request.search_query}")
-        
-        recommendations = ai_support.get_product_recommendations_with_reviews(
-            keyword=request.search_query,
-            limit=request.limit or 5
+        logger.error(f"Order tracking error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error tracking order: {str(e)}"
         )
-        
-        if not recommendations:
-            return {
-                "success": False,
-                "error": "No products found",
-                "query": request.search_query
-            }
-        
-        return {
-            "recommendations": recommendations,
-            "success": True
-        }
-    
-    except Exception as e:
-        print(f"[v0] Product suggestion error: {str(e)}")
-        return {
-            "success": False,
-            "error": f"Error getting suggestions: {str(e)}",
-            "query": request.search_query
-        }
+
 
 @ai_router.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "Multilingual AI Customer Support with Product Search"}
+    pinecone_status = ai_service.get_pinecone_status()
+    
+    return {
+        "status": "healthy",
+        "service": "E-commerce AI Customer Support",
+        "version": "2.0.0",
+        "features": [
+            "Multilingual support (English/Bengali/Banglish)",
+            "Vector search with 768-dim embeddings",
+            "Product recommendations",
+            "Order tracking"
+        ],
+        "pinecone": pinecone_status
+    }
 
-@ai_router.post("/search-product")
-async def search_product(request: ChatRequest):
-    """Direct product search endpoint"""
+
+@ai_router.get("/models")
+async def get_available_models():
+    """Get available LLM models"""
     try:
-        products = ai_support.search_products_from_db(request.message)
+        # This would need to be implemented in LLMManager
         return {
-            "products": products,
-            "count": len(products),
-            "success": True
+            "success": True,
+            "models": ["mixtral-8x7b-32768", "llama2-70b-4096", "llama3-70b-8192"]
         }
     except Exception as e:
-        print(f"[v0] Search error: {str(e)}")
+        logger.error(f"Error getting models: {e}")
         return {
-            "products": [],
-            "count": 0,
-            "error": str(e),
-            "success": False
+            "success": False,
+            "error": str(e)
         }
